@@ -37,11 +37,9 @@ const createUser = async (req, res, next) => {
 
     const dupeUsername = await checkUsername(createdUser.username);
     const dupeEmail = await checkEmail(createdUser.email);
-    console.log(dupeUsername, dupeEmail);
     let result;
 
     if (dupeUsername === null && dupeEmail === null) {
-        console.log("reached")
         result = await createdUser.save();
     }
     else {
