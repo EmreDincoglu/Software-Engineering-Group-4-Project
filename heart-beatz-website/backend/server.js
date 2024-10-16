@@ -11,4 +11,6 @@ app.get('/', (req, res) => {
 
 app.post('/newUser', mongo.createUser);
 
+app.post('/sendMessage', mongo.sendMessage);
+
 app.listen(5000);
