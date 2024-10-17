@@ -5,7 +5,7 @@ const UserSignupBox = props => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
 
-    const sendUserInfo = event => {
+    const sendUserInfo = async event => {
         event.preventDefault();
         const newUser = {
             username: username,
@@ -13,11 +13,12 @@ const UserSignupBox = props => {
             email: email
         }
         try {
-            fetch('', {
+            await fetch('http://localhost:5000/newUser', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
                 },
                 body: JSON.stringify(newUser)
             })

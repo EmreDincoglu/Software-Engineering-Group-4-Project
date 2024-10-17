@@ -1,19 +1,25 @@
+/*
+    Imports:
+*/
 const mongoose =  require('mongoose');
-
 const userAccount = require('./models/User');
 const message = require('./models/Messages');
-
+/*
+    Mongo setup
+*/
 const userdatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0');
-
 const messageDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0');
 
 const userModel = userdatabase.model('useraccounts', userAccount);
 
+/*
+    Request Methods:
+*/
 
 async function checkUsername(username) {
     const user = await userModel.findOne({username: username});
-    console.log(user);
     if (user) {
+        console.log(`Username ${username} is in use by user: ${user}`);
         return true;
     }
     return false;
@@ -21,46 +27,31 @@ async function checkUsername(username) {
 
 async function checkEmail(email) {
     const user = await userModel.findOne({email: email});
-    console.log(user);
     if (user) {
+        console.log(`Email ${email} is in use by user: ${user}`);
         return true;
     }
     return false;
 }
 
-const createUser = async (req, res, next) => {
-    
-    const createdUser = new userModel({
-        username: req.body.username.toLowerCase(),
-        password: req.body.password,
-        email: req.body.email.toLowerCase(),
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        age: req.body.age
-    });
-
-    const dupeUsername = await checkUsername(createdUser.username);
-    const dupeEmail = await checkEmail(createdUser.email);
-    let result;
-    console.log(dupeUsername, dupeEmail);
-    if (!dupeUsername && !dupeEmail) {
-        result = await createdUser.save();
+const createUser = async (req, res, _) => {
+    // parse input into a userModel object
+    req.body.username = req.body.username.toLowerCase();
+    req.body.email = req.body.email.toLowerCase();
+    const createdUser = new userModel(req.body);
+    // create return object and check for email and username uniqueness
+    let resp_data = {success: true};
+    if (await checkEmail(createdUser.email)) {resp_data.success = false; resp_data.duplicate_email = true;}
+    if (await checkUsername(createdUser.email)) {resp_data.success = false; resp_data.duplicate_username = true;}
+    // if username and email are unique, send the user to the database and add the user to the return object
+    if (resp_data.success) {
+        resp_data.user = await createdUser.save();
     }
-    else {
-        if (dupeUsername && dupeEmail) {
-            result = "Username and Email in use.";
-        }
-        else if (dupeUsername) {
-            result = "Username in use.";
-        }
-        else {
-            result = "Email in use.";
-        }
-    }
-    res.json(result);
+    // return the data back to react
+    res.json(resp_data);
 }
 
-const sendMessage = async (req, res, next) => {
+const sendMessage = async (req, res, _) => {
 
     if (!await checkUsername(req.body.sender.toLowerCase()) || !await checkUsername(req.body.recipient.toLowerCase())) {
         res.json("User doesn't exist");
@@ -88,6 +79,10 @@ const sendMessage = async (req, res, next) => {
     result = await sentMessage.save();
     res.json(result);
 }
+
+/*
+    Export Methods for server.js
+*/
 
 exports.createUser = createUser;
 exports.sendMessage = sendMessage;
