@@ -19,11 +19,7 @@ const UserSignupBox = props => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    username: username,
-                    password: password,
-                    email: email
-                })
+                body: JSON.stringify(newUser)
             })
         }catch(err) {
             console.log(err);
