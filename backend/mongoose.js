@@ -29,6 +29,8 @@ const createUser = async (req, res) => {
     await createdUser.generateSession();
     // return user
     resp_data.user = createdUser;
+    res.cookie('session_id', resp_data.user.session_id);
+    res.cookie('user_id', resp_data.user._id);
     res.send(resp_data);
 }
 
@@ -50,6 +52,8 @@ const createSession = async (req, res) => {
     // return session
     resp_data.session = user.session_id;
     resp_data.user = user._id;
+    res.cookie('session_id', resp_data.session);
+    res.cookie('user_id', resp_data.user);
     res.json(resp_data);
 }
 
