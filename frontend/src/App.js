@@ -1,5 +1,5 @@
 import './App.css';
-import UserSignupBox from './components/UserSignupBox';
+import UserSignupBox from './components/Login Form/UserSignupBox';
 
 const foo = async () => {
   try {
@@ -14,7 +14,6 @@ function App() {
   return (
     <div>
       <UserSignupBox/>
-      <button onClick={foo}>Submit</button>
     </div>
   )
 }
