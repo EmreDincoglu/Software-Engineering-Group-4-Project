@@ -1,15 +1,8 @@
 import './App.css';
-import {CookiesProvider, useCookies} from 'react-cookie';
-import UserSignupBox from './components/UserSignupBox';
+import LoginPage from './login-page/LoginPage';
 
 function App() {
-  const [cookies, setCookie] = useCookies(['user_id', 'session_id'])
-
-  return (
-    <div>
-      <UserSignupBox/>
-    </div>
-  )
+    return (LoginPage());
 }
 
 export default App;
