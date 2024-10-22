@@ -62,16 +62,15 @@ async function get_user(session_id, user_id) {
     return user;
 }
 
-// Authorize a session. requires a session_id and user _id
+// Authorize a session. the session values should be in a cookie automatically sent in the request
 // returns a success bool
 const authSession = async (req, res) => {
-    res.json({success: await get_user(req.body.session, req.body.user) != null});
+    res.json({success: await get_user(req.cookies.session_id, req.cookies.user_id) != null});
 }
 
 // Ensure the user is authorized with spotify. redirects to spotify login page if not
-// requires a session_id and user _id
 const authSpotify = async (req, res) => {
-    const user = await get_user(req.body.session, req.body.user);
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     if (user.spotify_token) {res.json({success: true}); return;}
     // User has no spotify token, start the generation process.
@@ -86,9 +85,9 @@ const authSpotify = async (req, res) => {
     }));
 }
 
-// Adds a spotify token to a user account. requires a session_id, user _id, and spotify_token
+// Adds a spotify token to a user account. requires a spotify_token
 const uploadSpotifyAuth = async (req, res) => {
-    const user = await get_user(req.body.session, req.body.user);
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     user.spotify_token = req.body.spotify_token;
     await user.save();
@@ -97,15 +96,13 @@ const uploadSpotifyAuth = async (req, res) => {
 
 /* Sends a message between two users
 Input: {
-    session: Number (session_id property of users),
-    user: ObjectId (_id property of users),
     recipient: ObjectId (_id property of recipient user),
     message: String
 }
 */
 const sendMessage = async (req, res, _) => {
     // authenticate session
-    const user = await get_user(req.body.session, req.body.user);
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     // ensure recipient does actually exist
     const recipient = await model.User.findById(req.body.recipient).findOne();
