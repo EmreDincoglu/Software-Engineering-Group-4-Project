@@ -14,19 +14,18 @@ const mongo = require('./mongoose.js');
 const app = express();
 
 app.use(bodyParser.json());
-app.use(cors({
-    origin: 'http://localhost:3000'
-}));
+app.use(cors());
 
 /*
     Request Definitions:
 */
 
-app.get('/', (req, res) => {
-    res.send('Hello from Express!');
-});
+app.get('/authSession', mongo.authSession);
+app.get('/authSpotify', mongo.authSpotify);
 
-app.post('/newUser', mongo.createUser);
+app.post('/createUser', mongo.createUser);
+app.post('/createSession', mongo.createSession);
+app.post('/uploadSpotifyAuth', mongo.uploadSpotifyAuth);
 app.post('/sendMessage', mongo.sendMessage);
 
 /*

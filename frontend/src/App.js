@@ -1,21 +1,16 @@
 import './App.css';
+import {CookiesProvider, useCookies} from 'react-cookie';
 import UserSignupBox from './components/UserSignupBox';
 
-const foo = async () => {
-  try {
-    const response = await fetch('http://localhost:5000/');
-    console.log(response);
-  } catch (err) {
-    console.log(err);
-  }
-}
-
 function App() {
+  const [cookies, setCookie] = useCookies(['user_id', 'session_id'])
+
   return (
-    <div>
-      <UserSignupBox/>
-      <button onClick={foo}>Submit</button>
-    </div>
+    <CookiesProvider>
+      <div>
+        <UserSignupBox setCookie={setCookie}/>
+      </div>
+    </CookiesProvider>
   )
 }
 

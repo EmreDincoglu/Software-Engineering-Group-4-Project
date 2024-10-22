@@ -4,3 +4,6 @@ flake.lock
 .direnv/
 .envrc
 .vscode/
+/package-lock.json
+/package.json
+/eslint.config.mjs
