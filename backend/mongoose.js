@@ -123,6 +123,24 @@ const sendMessage = async (req, res, _) => {
     res.json({success: true, message: await message.save()});
 }
 
+const getMessages = async (req, res, _) => {
+    // authenticate session
+    const user = await get_user(req.body.session, req.body.user);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    // ensure recipient does actually exist
+    const recipient = await model.User.findById(req.body.recipient).findOne();
+    if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
+     // get/create model for user->recipient message database
+     let messageCollectionName;
+     if (user._lc_uname < recipient._lc_uname) {messageCollectionName = user._lc_uname + ":" + recipient._lc_uname;}
+     else {messageCollectionName = recipient._lc_uname + ":" + user._lc_uname;}
+     //goes to the specific collection of the two users
+     const collection = model.messageDB.model(messageCollectionName, model.messageSchema);
+     //collection.find without any parameters gets every value in that collection and put it in an array
+     var msgArr = collection.find();
+     res.json(msgArr);
+}
+
 /*
     Export Methods for server.js
 */
@@ -132,5 +150,6 @@ module.exports = {
     authSession: authSession,
     authSpotify: authSpotify,
     uploadSpotifyAuth: uploadSpotifyAuth,
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
+    getMessages: getMessages
 };
