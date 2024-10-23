@@ -1,125 +1,101 @@
-import React from "react";
+import React, { useState } from "react";
 import './LoginPage.css';
-import {createUser, loginUser} from './lib';
-import {Navigate} from "react-router-dom";
+import { createUser, loginUser } from './lib'; // Using the backend logic from the first file
+import { Navigate } from "react-router-dom";
 
-class UserLoginBox extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: '',
-            password: '',
-            redirectToHomepage: false
+const UserLogIn = () => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [redirectToHomepage, setRedirectToHomepage] = useState(false);
+
+    // Backend logic for handling login
+    const handleLogin = async event => {
+        event.preventDefault();
+        const user = {
+            username: username,
+            password: password
         };
-
-        this.fieldChangeHandler = this.fieldChangeHandler.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
-
-    fieldChangeHandler(event) {
-        this.setState({[event.target.attributes.field.nodeValue]: event.target.value});
-    }
-
-    handleSubmit(event) {
-        loginUser(this.state).then(result => {
+        try {
+            const result = await loginUser(user);
             if (!result.success) {
-                console.log(result);
                 alert(result.fail_message);
                 return;
             }
-            // redirect to homepage
-            this.setState({redirectToHomepage: true});
-        });
-        event.preventDefault();
-    }
-
-    render() {
-        if (this.state.redirectToHomepage) {
-            return <Navigate to='/home' />;
+            setRedirectToHomepage(true); // Redirect to homepage on successful login
+        } catch (err) {
+            console.error(err);
         }
-        return (<div className = 'login-box'>
-            <form onSubmit={this.handleSubmit}>
-                <h1>Login</h1>
-                <div className="input-box">
-                    <input type="text" placeholder='Username' value = {this.state.username} field="username" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <div className="input-box">
-                    <input type="password" placeholder='Password' value = {this.state.password} field="password" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <button type="submit" value="Submit">Login</button>
-            </form>
-        </div>);
-    }
-}
+    };
 
-class UserSignupBox extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: '',
-            email: '',
-            password: '',
-            first_name: '',
-            last_name: '',
-            age: 0
-        };
+    // Backend logic for handling signup
+    const handleSignUp = async event => {
+        event.preventDefault();
+        const newUser = { username, password, email };
 
-        this.fieldChangeHandler = this.fieldChangeHandler.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-    }
-
-    fieldChangeHandler(event) {
-        this.setState({[event.target.attributes.field.nodeValue]: event.target.value});
-    }
-
-    handleSubmit(event) {
-        createUser(this.state).then(result => {
+        try {
+            const result = await createUser(newUser);
             if (!result.success) {
-                console.log(result);
                 alert(result.fail_message);
                 return;
             }
-            // redirect to homepage
+            alert('Signup Successful');
+            setIsLogin(true); // Switch to login after signup
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-        });
-        event.preventDefault();
+    if (redirectToHomepage) {
+        return <Navigate to='/home' />; // Navigate to homepage if login is successful
     }
 
-    render() {
-        return (<div className = 'login-box'>
-            <form onSubmit={this.handleSubmit}>
-                <h1>Register</h1>
-                <div className="input-box">
-                    <input type="text" placeholder='Username' value = {this.state.username} field="username" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <div className="input-box">
-                    <input type="text" placeholder='Password' value = {this.state.password} field="password" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <div className="input-box">
-                    <input type="email" placeholder='Email' value = {this.state.email} field="email" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <div className="input-box">
-                    <input type="text" placeholder='First Name' value = {this.state.first_name} field="first_name" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <div className="input-box">
-                    <input type="text" placeholder='Last Name' value = {this.state.last_name} field="last_name" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <div className="number-input-box">
-                    <label>Age: </label>
-                    <input type="number" value = {this.state.age} field="age" onChange ={this.fieldChangeHandler} required/>
-                </div>
-                <button type="submit" value="Submit">Register</button>
-            </form>
-        </div>);
-    }
-}
-
-export default function LoginPage() {
     return (
-        <div className='login-body'>
-            <UserLoginBox/>
-            <UserSignupBox/>
+        <div className='container'>
+            {isLogin ? (
+                <form onSubmit={handleLogin}>
+                    <h1>Login</h1>
+                    <div className="input-box">
+                        <input type="text" placeholder='Email / Username' value={username}
+                               onChange={e => setUsername(e.target.value)} required />
+                    </div>
+                    <div className="input-box">
+                        <input type="password" placeholder='Password' value={password}
+                               onChange={e => setPassword(e.target.value)} required />
+                    </div>
+                    <div className="forgot-password">
+                        <label><input type="checkbox" /><span>Remember me</span></label>
+                        <a href="#">Forgot Password</a>
+                    </div>
+                    <button type="submit">Login</button>
+                    <div className="register-link">
+                        <p>Don't have an account? <a href="#" onClick={() => setIsLogin(false)}>Sign Up</a></p>
+                    </div>
+                </form>
+            ) : (
+                <form onSubmit={handleSignUp}>
+                    <h1>Sign Up</h1>
+                    <div className="input-box">
+                        <input type="email" placeholder='Email' value={email}
+                               onChange={e => setEmail(e.target.value)} required />
+                    </div>
+                    <div className="input-box">
+                        <input type="text" placeholder='Username' value={username}
+                               onChange={e => setUsername(e.target.value)} required />
+                    </div>
+                    <div className="input-box">
+                        <input type="password" placeholder='Password' value={password}
+                               onChange={e => setPassword(e.target.value)} required />
+                    </div>
+                    <button type="submit">Sign Up</button>
+                    <div className="login-link">
+                        <p>Already have an account? <a href="#" onClick={() => setIsLogin(true)}>Login</a></p>
+                    </div>
+                </form>
+            )}
         </div>
-    )
-}
+    );
+};
 
+export default UserLogIn;
