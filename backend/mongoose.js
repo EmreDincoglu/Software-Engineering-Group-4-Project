@@ -3,6 +3,7 @@
 */
 const mongoose =  require('mongoose');
 const model = require('./model');
+const querystring = require("querystring");
 const CLIENTID = "eff8ab475b084ac6b33354f145e05a36";
 const CLIENT_SECRET = "8cbad3aeb88f42b1baa8eb03ad7abd12";
 const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
@@ -28,8 +29,8 @@ const createUser = async (req, res) => {
     // create a new session for the user
     await createdUser.generateSession();
     // return user session in a cookie
-    res.cookie('session_id', resp_data.user.session_id);
-    res.cookie('user_id', resp_data.user._id);
+    res.cookie('session_id', createdUser.session_id);
+    res.cookie('user_id', createdUser.id);
     res.send(resp_data);
 }
 
@@ -49,8 +50,8 @@ const createSession = async (req, res) => {
     // generate session
     await user.generateSession();
     // return session
-    res.cookie('session_id', resp_data.session);
-    res.cookie('user_id', resp_data.user);
+    res.cookie('session_id', user.session_id);
+    res.cookie('user_id', user.id);
     res.json(resp_data);
 }
 
@@ -68,28 +69,39 @@ const authSession = async (req, res) => {
     res.json({success: await get_user(req.cookies.session_id, req.cookies.user_id) != null});
 }
 
+// Return client side user information after authorizing a session
+const getUserData = async (req, res) => {
+    let user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    res.json({
+        success: true, 
+        user: {username: user.username, email: user.email, first_name: user.first_name, last_name: user.last_name, age: user.age}
+    });
+}
+
 // Ensure the user is authorized with spotify. redirects to spotify login page if not
 const authSpotify = async (req, res) => {
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     if (user.spotify_token) {res.json({success: true}); return;}
     // User has no spotify token, start the generation process.
-    const state = user._id;
-    const scope = "user-top-read";
-    res.redirect('https://accounts.spotify.com/authorize?' + querystring.stringify({
+    const user_id = user.id;
+    const needed_scope = "user-top-read";
+    res.json({success: false, path: 'https://accounts.spotify.com/authorize?' + querystring.stringify({
       response_type: 'code',
       client_id: CLIENTID,
-      scope: scope,
+      scope: needed_scope,
       redirect_uri: REDIRECTURI,
-      state: state
-    }));
+      state: user_id
+    })});
 }
 
-// Adds a spotify token to a user account. requires a spotify_token
+// Adds a spotify token to a user account. requires a spotify_token and user_id value (seperate from the ones in cookies)
 const uploadSpotifyAuth = async (req, res) => {
+    if (req.body.user_id != req.cookies.user_id) {res.json({sucess: false, non_matching_user_ids: true}); return;}
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
-    user.spotify_token = req.body.spotify_token;
+    user.spotify_token = req.body.token;
     await user.save();
     res.json({success: true});
 }
@@ -132,5 +144,6 @@ module.exports = {
     authSession: authSession,
     authSpotify: authSpotify,
     uploadSpotifyAuth: uploadSpotifyAuth,
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
+    getUserData: getUserData
 };
