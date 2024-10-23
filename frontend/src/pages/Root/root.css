@@ -1,10 +1,9 @@
 .nav-bar{
     display: flex;
-    gap: 10%;
     width: 100%;
     flex-direction: row;
     align-items: center;
-    border-bottom: solid white 2px;
+    border-bottom: solid white 0.1em;
     font-size: 1.5vw;
 }
 
@@ -17,7 +16,7 @@
     height: min-content;
     font-size: 150%;
     font-weight: bold;
-    padding-left: 10px;
+    padding-left: 0.5em;
 }
 .app-name .app-name-heart{
     color:hotpink;
@@ -36,7 +35,7 @@
     flex-direction: row;
     justify-content: right;
     gap: 3em;
-    padding-right: 10px;
+    padding-right: 0.5em;
 }
 .nav-bar-page-links a{
     font-size: 100%;
