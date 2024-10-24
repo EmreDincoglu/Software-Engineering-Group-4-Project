@@ -1,101 +1,126 @@
-import React, { useState } from "react";
+import React from "react";
 import './LoginPage.css';
-import { createUser, loginUser } from './lib'; // Using the backend logic from the first file
+import { createUser, loginUser } from './lib';
 import { Navigate } from "react-router-dom";
 
-const UserLogIn = () => {
-    const [isLogin, setIsLogin] = useState(true);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [email, setEmail] = useState('');
-    const [redirectToHomepage, setRedirectToHomepage] = useState(false);
-
-    // Backend logic for handling login
-    const handleLogin = async event => {
-        event.preventDefault();
-        const user = {
-            username: username,
-            password: password
+export default class LoginPage extends React.Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            username: '',
+            password: '',
+            email: '',
+            isLogin: true,
+            redirectToHomepage: false
         };
-        try {
-            const result = await loginUser(user);
-            if (!result.success) {
-                alert(result.fail_message);
-                return;
-            }
-            setRedirectToHomepage(true); // Redirect to homepage on successful login
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    // Backend logic for handling signup
-    const handleSignUp = async event => {
-        event.preventDefault();
-        const newUser = { username, password, email };
-
-        try {
-            const result = await createUser(newUser);
-            if (!result.success) {
-                alert(result.fail_message);
-                return;
-            }
-            alert('Signup Successful');
-            setIsLogin(true); // Switch to login after signup
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    if (redirectToHomepage) {
-        return <Navigate to='/home' />; // Navigate to homepage if login is successful
+        this.fieldChangeHandler = this.fieldChangeHandler.bind(this);
+        this.handleLogin = this.handleLogin.bind(this);
+        this.handleRegister = this.handleRegister.bind(this);
+        this.swapLogin = this.swapLogin.bind(this);
     }
 
-    return (
-        <div className='container'>
-            {isLogin ? (
-                <form onSubmit={handleLogin}>
+    fieldChangeHandler(event) {
+        this.setState({[event.target.attributes.field.nodeValue]: event.target.value});
+    }
+    async handleLogin(event) {
+        event.preventDefault();
+        const creds = {username: this.state.username, password: this.state.password};
+        const result = await loginUser(creds);
+        if (!result.success) {alert(result.fail_message); return;}
+        this.setState({redirectToHomepage: true});
+    }
+    async handleRegister(event) {
+        event.preventDefault();
+        const creds = {username: this.state.username, password: this.state.password, email: this.state.email};
+        const result = await createUser(creds);
+        if (!result.success) {alert(result.fail_message); return;}
+        this.setState({redirectToHomepage: true});
+    }
+    swapLogin() {
+        this.setState({
+            isLogin: !this.state.isLogin,
+            username: '',
+            password: '',
+            email: ''
+        });
+    }
+
+    render() {
+        if (this.state.redirectToHomepage) {return <Navigate to='/home'/>;}
+        if (this.state.isLogin) { return (
+            <div className="login-body">
+                <form onSubmit={this.handleLogin}>
                     <h1>Login</h1>
-                    <div className="input-box">
-                        <input type="text" placeholder='Email / Username' value={username}
-                               onChange={e => setUsername(e.target.value)} required />
-                    </div>
-                    <div className="input-box">
-                        <input type="password" placeholder='Password' value={password}
-                               onChange={e => setPassword(e.target.value)} required />
-                    </div>
+                    <input 
+                        type="text" 
+                        className="input-box" 
+                        placeholder='Username / Email' 
+                        value={this.state.username}
+                        field="username" 
+                        onChange={this.fieldChangeHandler} 
+                        required 
+                    />
+                    <input 
+                        type="password" 
+                        className="input-box" 
+                        placeholder='Password' 
+                        value={this.state.password}
+                        field="password" 
+                        onChange={this.fieldChangeHandler} 
+                        required 
+                    />
                     <div className="forgot-password">
-                        <label><input type="checkbox" /><span>Remember me</span></label>
-                        <a href="#">Forgot Password</a>
+                        <label>
+                            <input type="checkbox" /> 
+                            Remember me
+                        </label>
+                        <text>Forgot Password</text>
                     </div>
                     <button type="submit">Login</button>
-                    <div className="register-link">
-                        <p>Don't have an account? <a href="#" onClick={() => setIsLogin(false)}>Sign Up</a></p>
-                    </div>
+                    <p className="register-link">
+                        Don't have an account? 
+                        <text onClick={this.swapLogin}>Sign Up</text>
+                    </p>
                 </form>
-            ) : (
-                <form onSubmit={handleSignUp}>
+            </div>
+        );}else { return (
+            <div className="login-body">
+                <form onSubmit={this.handleRegister}>
                     <h1>Sign Up</h1>
-                    <div className="input-box">
-                        <input type="email" placeholder='Email' value={email}
-                               onChange={e => setEmail(e.target.value)} required />
-                    </div>
-                    <div className="input-box">
-                        <input type="text" placeholder='Username' value={username}
-                               onChange={e => setUsername(e.target.value)} required />
-                    </div>
-                    <div className="input-box">
-                        <input type="password" placeholder='Password' value={password}
-                               onChange={e => setPassword(e.target.value)} required />
-                    </div>
+                    <input 
+                        type="email" 
+                        className="input-box" 
+                        placeholder='Email' 
+                        value={this.state.email}
+                        field="email" 
+                        onChange={this.fieldChangeHandler} 
+                        required 
+                    />
+                    <input 
+                        type="text" 
+                        className="input-box" 
+                        placeholder='Ussername' 
+                        value={this.state.username}
+                        field="username" 
+                        onChange={this.fieldChangeHandler} 
+                        required 
+                    />
+                    <input 
+                        type="text" 
+                        className="input-box" 
+                        placeholder='Password' 
+                        value={this.state.password}
+                        field="password" 
+                        onChange={this.fieldChangeHandler} 
+                        required 
+                    />
                     <button type="submit">Sign Up</button>
-                    <div className="login-link">
-                        <p>Already have an account? <a href="#" onClick={() => setIsLogin(true)}>Login</a></p>
-                    </div>
+                    <p className="login-link">
+                        Already have an account? 
+                        <text onClick={this.swapLogin}>Login</text>
+                    </p>
                 </form>
-            )}
-        </div>
-    );
-};
-
-export default UserLogIn;
+            </div>
+        );}
+    }
+}

@@ -1,12 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
-body{
-    font-family: 'Inconsolata', monospace;
-}
-
 .nav-bar{
-    display: flex;
     position: fixed;
     top: 0;
+    left: 0;
+    display: flex;
     width: 100%;
     height: auto;
     flex-direction: row;
@@ -14,7 +10,7 @@ body{
     border-bottom: solid white 0.1em;
     font-size: 1.5vw;
     z-index: 1000;
-    left: 0;
+    background-color: black;
 }
 
 .nav-bar .app-name{
@@ -25,34 +21,30 @@ body{
     align-items: center;
     height: min-content;
     font-size: 150%;
-    font-weight: bold;
     padding-left: 0.5em;
-    font-size: 24px;
-    font-weight: 700;
-    padding-left: 10px;
-    padding-top: 10px;
 }
 .app-name .app-name-heart{
     color:hotpink;
     justify-self: right;
-    text-decoration: none;
 }
 .app-name .app-name-beatz{
     color: limegreen;
     justify-self: left;
-    text-decoration: none;
 }
+.app-name a{
+    text-decoration: none;
+    font-size: 100%;
+    font-weight: bold;
+}
+
 
 .nav-bar .nav-bar-page-links{
     width: 100%;
     display: flex;
     flex-direction: row;
     justify-content: right;
-    font-size: 16px;
     gap: 3em;
     padding-right: 0.5em;
-    padding-right: 10px;
-    padding-bottom: 10px;
 }
 .nav-bar-page-links a{
     font-size: 100%;
