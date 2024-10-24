@@ -11,7 +11,7 @@ const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
     Request Methods:
 */
 // Create a new user, returns the user if successful
-// Requires username, email, first_name, last_name, password, and age fields
+// Requires username, email, password
 const createUser = async (req, res) => {
     // parse input into a userModel object
     req.body.email = req.body.email.toLowerCase();

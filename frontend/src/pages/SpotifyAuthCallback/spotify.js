@@ -1,30 +1,6 @@
 import React from "react";
 import {Navigate} from "react-router-dom";
-import withRouter from "../../withRouter";
-
-// Asks the express app for data regarding the homepage, returning the data in an object
-// Gets user data, and redirects to spotify if the user has no spotify token
-async function updateSpotifyToken(sendData) {
-    try {
-        // send token to express
-        let response = await fetch('http://localhost:5000/uploadSpotifyAuth', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:3000/',
-            },
-            body: JSON.stringify(sendData)
-        });
-        if (!response || !response.ok) {return {sucess: false, error_message: "HTTP Error: " + response.statusText};}
-        let data = await response.json();
-        if (!data) {return {success: false, error_message: "Invalid fetch response body"};}
-        if (data.success) {return {success: true};}
-        if (data.invalid_session) {return {success: false, error_message: "Invalid Session"};}
-        if (data.non_matching_user_ids) {return {success: false, error_message: "Different user id logged in than started the spotify authentication"};}
-    } catch (err) {alert("Fetch failed: " + err); return {success: false};}
-}
+import { updateSpotifyToken, withRouter } from "../../lib";
 
 class SpotifyCallbackPage extends React.Component {
     constructor(props) {

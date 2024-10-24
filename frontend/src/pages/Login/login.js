@@ -1,6 +1,6 @@
 import React from "react";
-import './LoginPage.css';
-import { createUser, loginUser } from './lib';
+import './login.css';
+import { createUser, loginUser } from '../../lib';
 import { Navigate } from "react-router-dom";
 
 export default class LoginPage extends React.Component {
