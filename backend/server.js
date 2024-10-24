@@ -28,6 +28,8 @@ app.post('/createSession', mongo.createSession);
 app.post('/uploadSpotifyAuth', mongo.uploadSpotifyAuth);
 app.post('/sendMessage', mongo.sendMessage);
 
+app.put('/updateUser', mongo.updateUser)
+
 /*
     App Start:
 */

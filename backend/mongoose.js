@@ -94,6 +94,61 @@ const uploadSpotifyAuth = async (req, res) => {
     res.json({success: true});
 }
 
+// Updates attributes of a user account. 
+// Returns the updated user if successful, and re_authSpotify if spotify needs to be reauthenticated
+// Requires username, email, password, first_name, last_name, age
+const updateUser = async (req, res) => {
+    user = await get_user(re1.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+     
+    let resp_data = {
+        valid_username: false,
+        valid_email: false,
+    };
+    // used to verify the updated username and email
+    let updatedUser_data = {
+        username: req.body.new_username,
+        _lc_uname: req.body.new_username.toLowerCase(),
+        password: req.body.new_password,
+        email: req.body.new_email.toLowerCase(),
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        age: req.body.age,
+    };
+
+    const updatedUser = new model.User(updatedUser_data);
+
+    // verify new username and email
+    if (updatedUser._lc_uname == user._lc_uname || 
+        await updatedUser.checkUniqueUsername()) {
+            resp_data.valid_username = true;
+    }
+    if (updatedUser.email == user.email ||
+        await updatedUser.checkUniqueEmail()) {
+            resp_data.valid_email = true;
+        }
+    resp_data.success = resp_data.valid_username && resp_data.valid_email;
+    if (!resp_data.success) {res.send(resp_data); return;}
+    
+    // if successful (ie. valid new_username and new_email) then update the user
+    user.username = updatedUser.username;
+    user._lc_uname = updatedUser._lc_uname;
+    user.password = updatedUser.password;
+    user.email = updatedUser.email;
+    user.first_name = updatedUser.first_name;
+    user.last_name = updatedUser.last_name;
+    user.age = updatedUser.age;
+
+    // update the user
+    await user.save();
+    // create new session for updated user
+    await user.generateSession();
+    // return user session in cookie
+    res.cookie('session_id', resp_data.user.session_id);
+    res.cookie('user_id', resp_data.user._id);
+    res.send(resp_data);
+}
+
 /* Sends a message between two users
 Input: {
     recipient: ObjectId (_id property of recipient user),
@@ -132,5 +187,6 @@ module.exports = {
     authSession: authSession,
     authSpotify: authSpotify,
     uploadSpotifyAuth: uploadSpotifyAuth,
+    updateUser: updateUser,
     sendMessage: sendMessage
 };
