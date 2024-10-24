@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
+
+.login-body {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: start;
+    margin-top: 2em;
+    font-size: 1.5vw;
+}
+
+.login-box{
+    background: transparent;
+    border: 0.25em solid hotpink;
+    border-radius: 2em;
+    color: white;
+    text-align: center;
+    width: 25em;
+    font-size: 75%;
+}
+
+.login-box .input-box{
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
+.input-box input{
+    box-sizing: border-box;
+    background: transparent;
+    outline: none;
+    border: 0.1em solid white;
+    padding-left: 1em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    border-radius: 2em;
+    font-size: 100%;
+    color: white;
+    width: 100%;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.input-box input::placeholder{
+    color: limegreen;
+    opacity: 0.75;
+    font-size: 100%;
+}
+
+.input-box input:focus{
+    border-color: hotpink;
+}
+
+.login-box .number-input-box{
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    border: 0.1em solid white;
+    border-radius: 2em;
+    padding-left: 1em;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    font-size: 100%;
+    color: white;
+    display: flex;
+    flex-direction: row;
+}
+
+.number-input-box input{
+    box-sizing: border-box;
+    background: transparent;
+    outline: none;
+    border: none;
+    text-align: left;
+    font-size: 100%;
+    width: 100%;
+    padding-right: 10%;
+    color: white;
+}
+
+.number-input-box:has(input:focus){
+    border-color: hotpink;
+}
+
+.number-input-box label{
+    height: 100%;
+    font-size: 125%;
+    opacity: 0.75;
+    color: limegreen;
+}
+
+.login-box h1 {
+    font-size: 200%;
+    font-weight: bold;
+}
+
+.login-box button{
+    background: hotpink;
+    border: 0.1em solid white;
+    border-radius: 1em;
+    padding: 0.5em;
+    color: white;
+    font-size: 125%;
+    display: inline-block;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}

@@ -1,6 +1,7 @@
 import React from "react";
 import './LoginPage.css';
 import {createUser, loginUser} from './lib';
+import {Navigate} from "react-router-dom";
 
 class UserLoginBox extends React.Component {
     constructor(props) {
@@ -8,6 +9,7 @@ class UserLoginBox extends React.Component {
         this.state = {
             username: '',
             password: '',
+            redirectToHomepage: false
         };
 
         this.fieldChangeHandler = this.fieldChangeHandler.bind(this);
@@ -26,12 +28,16 @@ class UserLoginBox extends React.Component {
                 return;
             }
             // redirect to homepage
+            this.setState({redirectToHomepage: true});
         });
         event.preventDefault();
     }
 
     render() {
-        return (<div className = 'container'>
+        if (this.state.redirectToHomepage) {
+            return <Navigate to='/home' />;
+        }
+        return (<div className = 'login-box'>
             <form onSubmit={this.handleSubmit}>
                 <h1>Login</h1>
                 <div className="input-box">
@@ -80,7 +86,7 @@ class UserSignupBox extends React.Component {
     }
 
     render() {
-        return (<div className = 'container'>
+        return (<div className = 'login-box'>
             <form onSubmit={this.handleSubmit}>
                 <h1>Register</h1>
                 <div className="input-box">
@@ -110,9 +116,9 @@ class UserSignupBox extends React.Component {
 
 export default function LoginPage() {
     return (
-        <div className='app-body'>
-        <div className='login-box'><UserLoginBox/></div>
-        <div className='login-box'><UserSignupBox/></div>
+        <div className='login-body'>
+            <UserLoginBox/>
+            <UserSignupBox/>
         </div>
     )
 }

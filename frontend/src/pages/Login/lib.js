@@ -41,7 +41,7 @@ export async function loginUser(userData) {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': 'http://localhost:3000/',
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify({username: userData.username, password: userData.password})
         });
         if (!response.ok) {return {success: false, fail_message: "HTTP Error: " + response.statusText};}
         let res_data = await response.json();
