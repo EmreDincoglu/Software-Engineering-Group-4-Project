@@ -25,6 +25,7 @@ app.use(cors({origin: ['http://localhost:3000', 'http://localhost:3000/login', '
 app.get('/authSession', mongo.authSession);
 app.get('/getUserData', mongo.getUserData);
 app.get('/authSpotify', mongo.authSpotify);
+app.get('/getMessages', mongo.getMessages);
 
 app.post('/createUser', mongo.createUser);
 app.post('/createSession', mongo.createSession);
