@@ -116,6 +116,7 @@ export async function updateSpotifyToken(sendData) {
         if (data.success) {return {success: true};}
         if (data.invalid_session) {return {success: false, error_message: "Invalid Session"};}
         if (data.non_matching_user_ids) {return {success: false, error_message: "Different user id logged in than started the spotify authentication"};}
+        if (data.account_already_in_use) {return {success: false, error_message: "Different user has already connected that spotify account"};}
     } catch (err) {alert("Fetch failed: " + err); return {success: false};}
 }
 // Wraps a component to have search params from the url

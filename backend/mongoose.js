@@ -92,7 +92,8 @@ const authSpotify = async (req, res) => {
       client_id: CLIENTID,
       scope: needed_scope,
       redirect_uri: REDIRECTURI,
-      state: user_id
+      state: user_id,
+      show_dialog: 'true'
     })});
 }
 
@@ -101,6 +102,7 @@ const uploadSpotifyAuth = async (req, res) => {
     if (req.body.user_id != req.cookies.user_id) {res.json({sucess: false, non_matching_user_ids: true}); return;}
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
+    // upload token
     user.spotify_token = req.body.token;
     await user.save();
     res.json({success: true});
