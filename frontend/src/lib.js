@@ -49,7 +49,7 @@ export async function loginUser(userData) {
         let res_data = await response.json();
         if (!res_data) {return {success: false, fail_message: "Bad Response Body"};}
         if (res_data.invalid_username) {
-            return {success: false, fail_message: "Incorrect Username"};
+            return {success: false, fail_message: "Invalid User"};
         }else if (res_data.invalid_password) {
             return {success: false, fail_message: "Incorrect Password"};
         }

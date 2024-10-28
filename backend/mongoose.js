@@ -39,9 +39,12 @@ const createUser = async (req, res) => {
 const createSession = async (req, res) => {
     let resp_data = {success: true};
     // find user
-    const user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
-    if (!user) {
-        resp_data.success = false; resp_data.invalid_username = true; res.json(resp_data); return;
+    let user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
+    if (user == null) {
+        user = await model.User.findOne({email: req.body.username.toLowerCase()});
+    }
+    if (user == null) {
+        res.json({success: false, invalid_user: true}); return;
     }
     // check password
     if (user.password != req.body.password) {
@@ -52,7 +55,7 @@ const createSession = async (req, res) => {
     // return session
     res.cookie('session_id', user.session_id);
     res.cookie('user_id', user.id);
-    res.json(resp_data);
+    res.json({success: true});
 }
 
 // returns the user, authenticating the session as well
