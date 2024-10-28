@@ -63,12 +63,24 @@ export default class HomePage extends React.Component {
 
     render() {
         if (this.state.redirectToLogin) {
-            return <Navigate to='/login' />;
+            return <Navigate to='/login'/>;
+        }
+        if (this.state.user) {
+            return (
+                <div>
+                    <>
+                        <div class="grid-background">
+                            <h1> Welcome {this.state.user.username}!</h1>
+                        </div>
+                    </>
+                </div>
+            );
         }
         return (
-            <div>
-                <p>{this.state.user? this.state.user.username : "unknown"}</p>
-            </div>
-        );
+            <>
+                <div class = "grid-background"></div>
+                <h1>Loading...</h1>
+            </>
+        )
     }
 }
