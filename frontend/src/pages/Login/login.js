@@ -48,6 +48,8 @@ export default class LoginPage extends React.Component {
     render() {
         if (this.state.redirectToHomepage) {return <Navigate to='/home'/>;}
         if (this.state.isLogin) { return (
+            <>
+            <div class= "grid-background"></div>
             <div className="login-body">
                 <form onSubmit={this.handleLogin}>
                     <h1>Login</h1>
@@ -78,12 +80,16 @@ export default class LoginPage extends React.Component {
                     </div>
                     <button type="submit">Login</button>
                     <p className="register-link">
-                        Don't have an account? 
-                        <text onClick={this.swapLogin}>Sign Up</text>
+                        Don't have an account?
+                        <text onClick={this.swapLogin}> Sign Up</text>
                     </p>
                 </form>
             </div>
-        );}else { return (
+            </>
+        );
+        }else { return (
+            <>
+                <div class = "grid-background"></div>
             <div className="login-body">
                 <form onSubmit={this.handleRegister}>
                     <h1>Sign Up</h1>
@@ -99,7 +105,7 @@ export default class LoginPage extends React.Component {
                     <input 
                         type="text" 
                         className="input-box" 
-                        placeholder='Ussername' 
+                        placeholder='Username'
                         value={this.state.username}
                         field="username" 
                         onChange={this.fieldChangeHandler} 
@@ -117,10 +123,11 @@ export default class LoginPage extends React.Component {
                     <button type="submit">Sign Up</button>
                     <p className="login-link">
                         Already have an account? 
-                        <text onClick={this.swapLogin}>Login</text>
+                        <text onClick={this.swapLogin}> Login</text>
                     </p>
                 </form>
             </div>
+            </>
         );}
     }
 }
