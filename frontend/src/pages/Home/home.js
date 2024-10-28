@@ -71,6 +71,7 @@ export default class HomePage extends React.Component {
                     <>
                         <div class="grid-background">
                             <h1> Welcome {this.state.user.username}!</h1>
+
                         </div>
                     </>
                 </div>
