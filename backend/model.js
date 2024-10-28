@@ -10,9 +10,9 @@ const userSchema = new mongoose.Schema({
     _lc_uname: {type: String, required: true},
     password: { type: String, required: true },
     email: { type: String, required: true},
-    // first_name: { type: String, required: true },
-    // last_name: { type: String, required: true },
-    // age: { type: Number, required: true },
+    first_name: String,
+    last_name: String,
+    age: Number,
     spotify_token: String,
     session_id: Number,
     session_date: Date

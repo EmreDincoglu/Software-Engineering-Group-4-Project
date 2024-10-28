@@ -11,7 +11,7 @@ const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
     Request Methods:
 */
 // Create a new user, returns the user if successful
-// Requires username, email, first_name, last_name, password, and age fields
+// Requires username, email, password
 const createUser = async (req, res) => {
     // parse input into a userModel object
     req.body.email = req.body.email.toLowerCase();
@@ -39,9 +39,12 @@ const createUser = async (req, res) => {
 const createSession = async (req, res) => {
     let resp_data = {success: true};
     // find user
-    const user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
-    if (!user) {
-        resp_data.success = false; resp_data.invalid_username = true; res.json(resp_data); return;
+    let user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
+    if (user == null) {
+        user = await model.User.findOne({email: req.body.username.toLowerCase()});
+    }
+    if (user == null) {
+        res.json({success: false, invalid_user: true}); return;
     }
     // check password
     if (user.password != req.body.password) {
@@ -52,7 +55,7 @@ const createSession = async (req, res) => {
     // return session
     res.cookie('session_id', user.session_id);
     res.cookie('user_id', user.id);
-    res.json(resp_data);
+    res.json({success: true});
 }
 
 // returns the user, authenticating the session as well
@@ -92,7 +95,8 @@ const authSpotify = async (req, res) => {
       client_id: CLIENTID,
       scope: needed_scope,
       redirect_uri: REDIRECTURI,
-      state: user_id
+      state: user_id,
+      show_dialog: 'true'
     })});
 }
 
@@ -101,6 +105,7 @@ const uploadSpotifyAuth = async (req, res) => {
     if (req.body.user_id != req.cookies.user_id) {res.json({sucess: false, non_matching_user_ids: true}); return;}
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
+    // upload token
     user.spotify_token = req.body.token;
     await user.save();
     res.json({success: true});
