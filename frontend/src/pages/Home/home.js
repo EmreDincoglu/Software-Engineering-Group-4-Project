@@ -1,7 +1,7 @@
 import React from "react";
 import {Navigate} from "react-router-dom";
 import "./home.css";
-import { getHomepageData } from "../../lib";
+import { getUser } from "../../lib";
 
 export default class HomePage extends React.Component {
     constructor(props) {
@@ -13,7 +13,7 @@ export default class HomePage extends React.Component {
     }
 
     componentDidMount() {
-        getHomepageData().then(result => {
+        getUser().then(result => {
             if (!result.success) {
                 this.setState({redirectToLogin: true});
             }else {

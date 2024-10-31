@@ -31,6 +31,8 @@ body {
     transform-origin: top;
     z-index: -1;
     animation: move-grid 10s linear infinite;
+    display: flex;
+    justify-content: center;
 }
 
 @keyframes move-grid{
