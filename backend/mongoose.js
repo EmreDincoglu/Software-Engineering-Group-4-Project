@@ -115,7 +115,7 @@ const uploadSpotifyAuth = async (req, res) => {
 // Returns the updated user if successful, and re_authSpotify if spotify needs to be reauthenticated
 // Requires username, email, password, first_name, last_name, age
 const updateUser = async (req, res) => {
-    user = await get_user(re1.cookies.session_id, req.cookies.user_id);
+    user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
      
     let resp_data = {
@@ -137,6 +137,7 @@ const updateUser = async (req, res) => {
         await updatedUser.checkUniqueUsername()) {
             resp_data.valid_username = true;
     }
+        // may need to verify new email with extra steps
     if (updatedUser.email == user.email ||
         await updatedUser.checkUniqueEmail()) {
             resp_data.valid_email = true;
@@ -149,23 +150,21 @@ const updateUser = async (req, res) => {
     user._lc_uname = updatedUser._lc_uname;
     user.password = updatedUser.password;
     user.email = updatedUser.email;
-    if (req.body.first_name) {
+    if (req.body.new_first_name) {
         user.first_name = req.body.new_first_name;
     }
-    if (req.body.last_name) {
+    if (req.body.new_last_name) {
         user.last_name = req.body.new_last_name;
     }
-    if (req.body.age) {
+    if (req.body.new_age) {
         user.age = req.body.new_age;
     }
 
     // update the user
     await user.save();
-    // create new session for updated user
-    await user.generateSession();
-    // return user session in cookie
-    res.cookie('session_id', resp_data.user.session_id);
-    res.cookie('user_id', resp_data.user._id);
+
+    //  Don't know if updating session/user_id is needed
+
     res.send(resp_data);
 }
 
@@ -226,7 +225,7 @@ module.exports = {
     authSpotify: authSpotify,
     uploadSpotifyAuth: uploadSpotifyAuth,
     sendMessage: sendMessage,
-    getUserDta: getUserData,
+    getUserData: getUserData,
     getMessages: getMessages,
     updateUser: updateUser
 };
