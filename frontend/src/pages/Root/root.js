@@ -2,7 +2,7 @@ import { Outlet, Link } from "react-router-dom";
 import './root.css';
 // This defines global web page constants, such as the navbar
 export function RootPage(){return (
-    <div>
+    <>
         <div className='nav-bar'>
             <div className='app-name'>
                 <Link className="app-name-heart" to="/">Heart</Link>
@@ -16,7 +16,7 @@ export function RootPage(){return (
             </div>
         </div>
         <Outlet/>
-    </div>
+    </>
 );}
 
 export function AboutPage(){return (
