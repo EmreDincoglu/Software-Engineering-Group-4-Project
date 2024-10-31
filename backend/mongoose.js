@@ -34,6 +34,14 @@ const createUser = async (req, res) => {
     res.send(resp_data);
 }
 
+const deleteUser = async (req, res) => {
+    let user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+
+    // return removed user and remove user from collection
+    res.send((await model.User.findByIdAndDelete(req.cookies.user_id)).toJSON());
+}
+
 // Authorize access to a user's account, returns a session_id and user _id
 // Requires a username and password field
 const createSession = async (req, res) => {
@@ -164,5 +172,6 @@ module.exports = {
     uploadSpotifyAuth: uploadSpotifyAuth,
     sendMessage: sendMessage,
     getUserData: getUserData,
-    getMessages: getMessages
+    getMessages: getMessages,
+    deleteUser: deleteUser,
 };
