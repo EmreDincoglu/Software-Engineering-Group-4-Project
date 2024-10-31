@@ -110,10 +110,7 @@ const updateUser = async (req, res) => {
         username: req.body.new_username,
         _lc_uname: req.body.new_username.toLowerCase(),
         password: req.body.new_password,
-        email: req.body.new_email.toLowerCase(),
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        age: req.body.age,
+        email: req.body.new_email.toLowerCase()
     };
 
     const updatedUser = new model.User(updatedUser_data);
@@ -135,9 +132,15 @@ const updateUser = async (req, res) => {
     user._lc_uname = updatedUser._lc_uname;
     user.password = updatedUser.password;
     user.email = updatedUser.email;
-    user.first_name = updatedUser.first_name;
-    user.last_name = updatedUser.last_name;
-    user.age = updatedUser.age;
+    if (req.body.first_name) {
+        user.first_name = req.body.new_first_name;
+    }
+    if (req.body.last_name) {
+        user.last_name = req.body.new_last_name;
+    }
+    if (req.body.age) {
+        user.age = req.body.new_age;
+    }
 
     // update the user
     await user.save();
