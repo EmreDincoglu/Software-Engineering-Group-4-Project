@@ -1,0 +1,58 @@
+.nav-bar{
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: solid white 0.1em;
+    font-size: 2vw;
+    z-index: 1000;
+    background-color: black;
+}
+
+.nav-bar .app-name{
+    width: min-content;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    height: min-content;
+    font-size: 150%;
+    padding-left: 0.5em;
+}
+.app-name .app-name-heart{
+    color:hotpink;
+    justify-self: right;
+}
+.app-name .app-name-beatz{
+    color: limegreen;
+    justify-self: left;
+}
+.app-name a{
+    text-decoration: none;
+    font-size: 100%;
+    font-weight: bold;
+}
+
+
+.nav-bar .nav-bar-page-links{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    gap: 3em;
+    padding-right: 0.5em;
+}
+.nav-bar-page-links a{
+    font-size: 100%;
+    color: white;
+    text-decoration: none;
+    font-variant: normal;
+}
+.nav-bar-page-links a:hover{
+    color: hotpink
+}
+

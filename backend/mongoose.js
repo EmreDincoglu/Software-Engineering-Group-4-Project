@@ -3,6 +3,7 @@
 */
 const mongoose =  require('mongoose');
 const model = require('./model');
+const querystring = require("querystring");
 const CLIENTID = "eff8ab475b084ac6b33354f145e05a36";
 const CLIENT_SECRET = "8cbad3aeb88f42b1baa8eb03ad7abd12";
 const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
@@ -10,7 +11,7 @@ const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
     Request Methods:
 */
 // Create a new user, returns the user if successful
-// Requires username, email, first_name, last_name, password, and age fields
+// Requires username, email, password
 const createUser = async (req, res) => {
     // parse input into a userModel object
     req.body.email = req.body.email.toLowerCase();
@@ -28,8 +29,8 @@ const createUser = async (req, res) => {
     // create a new session for the user
     await createdUser.generateSession();
     // return user session in a cookie
-    res.cookie('session_id', resp_data.user.session_id);
-    res.cookie('user_id', resp_data.user._id);
+    res.cookie('session_id', createdUser.session_id);
+    res.cookie('user_id', createdUser.id);
     res.send(resp_data);
 }
 
@@ -38,9 +39,12 @@ const createUser = async (req, res) => {
 const createSession = async (req, res) => {
     let resp_data = {success: true};
     // find user
-    const user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
-    if (!user) {
-        resp_data.success = false; resp_data.invalid_username = true; res.json(resp_data); return;
+    let user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
+    if (user == null) {
+        user = await model.User.findOne({email: req.body.username.toLowerCase()});
+    }
+    if (user == null) {
+        res.json({success: false, invalid_user: true}); return;
     }
     // check password
     if (user.password != req.body.password) {
@@ -49,9 +53,9 @@ const createSession = async (req, res) => {
     // generate session
     await user.generateSession();
     // return session
-    res.cookie('session_id', resp_data.session);
-    res.cookie('user_id', resp_data.user);
-    res.json(resp_data);
+    res.cookie('session_id', user.session_id);
+    res.cookie('user_id', user.id);
+    res.json({success: true});
 }
 
 // returns the user, authenticating the session as well
@@ -68,28 +72,41 @@ const authSession = async (req, res) => {
     res.json({success: await get_user(req.cookies.session_id, req.cookies.user_id) != null});
 }
 
+// Return client side user information after authorizing a session
+const getUserData = async (req, res) => {
+    let user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    res.json({
+        success: true, 
+        user: {username: user.username, email: user.email, first_name: user.first_name, last_name: user.last_name, age: user.age}
+    });
+}
+
 // Ensure the user is authorized with spotify. redirects to spotify login page if not
 const authSpotify = async (req, res) => {
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     if (user.spotify_token) {res.json({success: true}); return;}
     // User has no spotify token, start the generation process.
-    const state = user._id;
-    const scope = "user-top-read";
-    res.redirect('https://accounts.spotify.com/authorize?' + querystring.stringify({
+    const user_id = user.id;
+    const needed_scope = "user-top-read";
+    res.json({success: false, path: 'https://accounts.spotify.com/authorize?' + querystring.stringify({
       response_type: 'code',
       client_id: CLIENTID,
-      scope: scope,
+      scope: needed_scope,
       redirect_uri: REDIRECTURI,
-      state: state
-    }));
+      state: user_id,
+      show_dialog: 'true'
+    })});
 }
 
-// Adds a spotify token to a user account. requires a spotify_token
+// Adds a spotify token to a user account. requires a spotify_token and user_id value (seperate from the ones in cookies)
 const uploadSpotifyAuth = async (req, res) => {
+    if (req.body.user_id != req.cookies.user_id) {res.json({sucess: false, non_matching_user_ids: true}); return;}
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
-    user.spotify_token = req.body.spotify_token;
+    // upload token
+    user.spotify_token = req.body.token;
     await user.save();
     res.json({success: true});
 }
@@ -181,6 +198,24 @@ const sendMessage = async (req, res, _) => {
     res.json({success: true, message: await message.save()});
 }
 
+const getMessages = async (req, res, _) => {
+    // authenticate session
+    const user = await get_user(req.body.session, req.body.user);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    // ensure recipient does actually exist
+    const recipient = await model.User.findById(req.body.recipient).findOne();
+    if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
+     // get/create model for user->recipient message database
+     let messageCollectionName;
+     if (user._lc_uname < recipient._lc_uname) {messageCollectionName = user._lc_uname + ":" + recipient._lc_uname;}
+     else {messageCollectionName = recipient._lc_uname + ":" + user._lc_uname;}
+     //goes to the specific collection of the two users
+     const collection = model.messageDB.model(messageCollectionName, model.messageSchema);
+     //collection.find without any parameters gets every value in that collection and put it in an array
+     var msgArr = collection.find();
+     res.json(msgArr);
+}
+
 /*
     Export Methods for server.js
 */
@@ -190,6 +225,8 @@ module.exports = {
     authSession: authSession,
     authSpotify: authSpotify,
     uploadSpotifyAuth: uploadSpotifyAuth,
-    updateUser: updateUser,
-    sendMessage: sendMessage
+    sendMessage: sendMessage,
+    getUserDta: getUserData,
+    getMessages: getMessages,
+    updateUser: updateUser
 };
