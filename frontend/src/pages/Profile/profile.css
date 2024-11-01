@@ -1,9 +1,58 @@
-h1{
-    font-weight: 700;
+.profile-block {
+    display: flex;
+    flex-direction: column;
+    border: 3px solid lawngreen;
+    border-radius: 20px;
+    padding: 20px;
+    align-content: center;
+    text-align: center;
+    gap: 10px;
+    font-size: 16px;
 }
 
-h3{
+.profile-block h1 {
+    font-size: 300%;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.profile-block .profile-uname-and-icon {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.profile-uname-and-icon img{
+    width: 32px;
+    border-radius: 50%;
+}
+.profile-uname-and-icon span{
+    font-size: 200%;
+    font-weight: bold;
+}
+
+.profile-block .profile-email{
+    font-size: 125%;
     font-weight: 500;
+}
+
+.profile-block .profile-name-age{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 125%;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.profile-name-age .profile-name{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
 }
 
 .profile-box-one{

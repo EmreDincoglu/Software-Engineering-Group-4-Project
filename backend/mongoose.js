@@ -78,7 +78,14 @@ const getUserData = async (req, res) => {
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     res.json({
         success: true, 
-        user: {username: user.username, email: user.email, first_name: user.first_name, last_name: user.last_name, age: user.age}
+        user: {
+            username: user.username, 
+            email: user.email, 
+            first_name: user.first_name, 
+            last_name: user.last_name, 
+            age: user.age,
+            bio: user.bio
+        }
     });
 }
 

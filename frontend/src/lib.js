@@ -32,7 +32,7 @@ async function sendRequest(config) {
         if (!response.ok) {return {success: false, fail_message: ("Http Error: " + response.statusText)};}
         let data = await response.json();
         if (!data) {return {success: false, fail_message: "Invalid fetch response body"};}
-        for (const [subset, msg] in config.fail_conds) {
+        for (const [subset, msg] of config.fail_conds) {
             if (isMatch(data, subset)) {return {success: false, fail_message: msg};}
         }
         if (config.desired_data === false) {return {success: true};}

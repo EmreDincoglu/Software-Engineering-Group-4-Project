@@ -1,7 +1,72 @@
-import './profile.css';
-import React, { useState } from 'react';
+import React from "react";
+import {Navigate} from "react-router-dom";
+import "./profile.css";
+import { getUser } from "../../lib";
+import default_user from "../../assets/default_user.png";
 
-export default function ProfilePage(){
+export default class ProfilePage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      loaded: false,
+      true_user: null,
+      current_user: null,
+      updating_profile: false,
+      redirect_to_login: false
+    };
+  }
+
+  componentDidMount() {
+    getUser().then(result => {
+      if (!result.success) {
+        this.setState({redirectToLogin: true});
+      }else {
+        this.setState({true_user: result.user, current_user: result.user, loaded: true});
+      }
+    });
+  }
+
+  render() {
+    if (this.state.redirectToLogin) {
+      return <Navigate to='/login'/>;
+    }
+    if (!this.state.loaded) {
+      return (<>
+        <div class = "grid-background"></div>
+        <h1>Loading...</h1>
+      </>);
+    }
+    if (!this.state.updating_profile) {
+      return (<>
+        <div className="grid-background"></div>
+        <div className="profile-block">
+          <h1>Profile</h1>
+          <div className="profile-uname-and-icon">
+            <img alt="Icon" src={default_user}/>
+            <span>{this.state.true_user.username}</span>
+          </div>
+          <div className="profile-email">{this.state.true_user.email}</div>
+          <div className="profile-name-age">
+            <div className="profile-name">
+              <span>{(this.state.true_user.first_name!=null? this.state.true_user.first_name : "?")}</span>
+              <span>{(this.state.true_user.last_name!=null? this.state.true_user.last_name : "?")}</span>
+            </div>
+            <span className="profile-age">
+              Age: {(this.state.true_user.age!=null)? this.state.true_user.age : "?"}
+            </span>
+          </div>
+          <div className="profile-bio">{this.state.true_user.bio}</div>
+        </div>
+      </>);
+    }else {
+      return (<>
+        <div className = "grid-background"></div>
+      </>);
+    }
+  }
+}
+/**
+function ProfilePage(){
     const [profilePic, setProfilePic] = useState(null);
     const [uploadedFile, setUploadedFile] = useState(null);
 
@@ -105,4 +170,4 @@ export default function ProfilePage(){
                 </div>
         </div>
         </>
-);}
+);}*/
