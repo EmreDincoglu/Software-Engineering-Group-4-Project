@@ -158,6 +158,46 @@ const getMessages = async (req, res, _) => {
      res.json(msgArr);
 }
 
+async function createProfile(_lc_uname) {
+    const newProfile = new model.Profile(_lc_uname);
+    await newProfile.save();
+    return newProfile;
+}
+
+const getProfile = async(req, res, _) => {
+    //authenticate session
+    const user = await get_user(req.body.session, req.body.user);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    /*
+    finds profile, if it doesn't exist, makes one automatically only if the user does exist.
+    (this allows us to get null data from a profile, for instance if someone hasnt edited their profile but we know their user
+    exists, then it will just send back an empty profile of data that will be filled in eventually)
+    */
+    const profile = await model.Profile.findOne({_lc_uname: user.body._lc_uname});
+    if (!profile) {profile = await createProfile(user.body._lc_uname);}
+    res.json(profile);
+}
+
+const editProfile = async(req, res, _) => {
+    //auth session
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    //finds profile, if it doesn't exist it makes one
+    let profile = await model.Profile.findOne({_lc_uname: user.body._lc_uname});
+    if (!profile) {await createProfile(_lc_uname)}
+    //theres gotta be a cleaner way of doing this
+    profile.profile_pic = req.body.profile_pic;
+    profile.pref_name = req.body.pref_name;
+    profile.age = req.body.age;
+    profile.prompt_one = req.body.prompt_one;
+    profile.prompt_two = req.body.prompt_two;
+    profile.prompt_three = req.body.prompt_three;
+    profile.answer_one = req.body.response_one;
+    profile.answer_two = req.body.response_two;
+    profile.answer_three = req.body.response_three;
+    await profile.save();
+}
+
 /*
     Export Methods for server.js
 */
@@ -169,5 +209,7 @@ module.exports = {
     uploadSpotifyAuth: uploadSpotifyAuth,
     sendMessage: sendMessage,
     getUserData: getUserData,
-    getMessages: getMessages
+    getMessages: getMessages,
+    editProfile: editProfile,
+    getProfile: getProfile
 };

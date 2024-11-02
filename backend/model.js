@@ -4,6 +4,7 @@ const moment = require('moment');
 const userDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0');
 const messageDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0');
 
+
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true},
     // lowercase version of username, used for uniqueness of usernames
@@ -58,8 +59,24 @@ const messageSchema = new mongoose.Schema({
     recipient: { type: String, required: true }
 });
 
+const profileSchema = new mongoose.Schema({
+    _lc_uname: {type: String, required: true},
+    pref_name: String,
+    age: Number,
+    prompt_one: String,
+    prompt_two: String,
+    prompt_three: String,
+    answer_one: String,
+    answer_two: String,
+    answer_three: String,
+    profile_pic: 
+})
+
+const ProfileModel = userDatabase.model('profileData', profileSchema);
+
 module.exports = {
     User: UserModel,
+    Profile: ProfileModel,
     messageSchema: messageSchema,
     messageDB: messageDatabase
 };
