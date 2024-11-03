@@ -1,6 +1,6 @@
 import React from "react";
 import './login.css';
-import { createUser, loginUser } from '../../lib';
+import { createUser, loginUser } from '../../lib/backend';
 import { Navigate } from "react-router-dom";
 
 export default class LoginPage extends React.Component {
@@ -53,7 +53,7 @@ export default class LoginPage extends React.Component {
   render() {
     if (this.state.redirectToHomepage) {return <Navigate to='/home'/>;}
     if (this.state.isLogin) { return (<>
-      <div class= "grid-background"></div>
+      <div className= "grid-background"></div>
       <div className="login-body">
         <form onSubmit={this.handleLogin}>
           <h1>Login</h1>
@@ -80,17 +80,17 @@ export default class LoginPage extends React.Component {
               <input type="checkbox" field="show_password" onChange={this.checkboxFieldChangeHandler}/> 
               Show Password
             </label>
-            <text>Forgot Password</text>
+            <span>Forgot Password</span>
           </div>
           <button type="submit">Login</button>
           <p className="register-link">
             Don't have an account?
-            <text onClick={this.swapLogin}> Sign Up</text>
+            <span onClick={this.swapLogin}> Sign Up</span>
           </p>
         </form>
       </div>
     </>);}else { return (<>
-      <div class = "grid-background"></div>
+      <div className = "grid-background"></div>
       <div className="login-body">
         <form onSubmit={this.handleRegister}>
           <h1>Sign Up</h1>
@@ -124,7 +124,7 @@ export default class LoginPage extends React.Component {
           <button type="submit">Sign Up</button>
           <p className="login-link">
             Already have an account? 
-            <text onClick={this.swapLogin}> Login</text>
+            <span onClick={this.swapLogin}> Login</span>
           </p>
         </form>
       </div>

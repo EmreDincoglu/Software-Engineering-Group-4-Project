@@ -21,6 +21,6 @@ export function RootPage(){return (
 
 export function AboutPage(){return (
     <div>
-        <text>About Page</text>
+        <p>About Page</p>
     </div>
 );}

@@ -1,6 +1,7 @@
 import React from "react";
-import {Navigate} from "react-router-dom";
-import { updateSpotifyToken, withRouter } from "../../lib";
+import { Navigate } from "react-router-dom";
+import { updateSpotifyToken } from "../../lib/backend";
+import { withRouter } from "../../lib/default";
 
 class SpotifyCallbackPage extends React.Component {
     constructor(props) {

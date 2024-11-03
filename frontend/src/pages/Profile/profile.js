@@ -1,8 +1,10 @@
 import React from "react";
 import {Navigate} from "react-router-dom";
+import {Jimp} from "jimp";
 import "./profile.css";
-import { getUser } from "../../lib";
+import { getUser } from "../../lib/backend";
 import default_user from "../../assets/default_user.png";
+import ImageElement from "../../lib/image";
 
 export default class ProfilePage extends React.Component {
   constructor(props) {
@@ -14,6 +16,11 @@ export default class ProfilePage extends React.Component {
       updating_profile: false,
       redirect_to_login: false
     };
+    this.getIcon = this.getIcon.bind(this);
+  }
+
+  getIcon(fallback) {
+    return this.state.current_user.icon ?? fallback;
   }
 
   componentDidMount() {
@@ -27,7 +34,7 @@ export default class ProfilePage extends React.Component {
   }
 
   render() {
-    if (this.state.redirectToLogin) {
+    if (this.state.redirect_to_login) {
       return <Navigate to='/login'/>;
     }
     if (!this.state.loaded) {
@@ -42,7 +49,12 @@ export default class ProfilePage extends React.Component {
         <div className="profile-block">
           <h1>Profile</h1>
           <div className="profile-uname-and-icon">
-            <img alt="Icon" src={default_user}/>
+            <ImageElement default_state={{
+              fallback: default_user, 
+              editable: true, 
+              alt_text: "Upload",
+              cropped_size: 256
+            }}/>
             <span>{this.state.true_user.username}</span>
           </div>
           <div className="profile-email">{this.state.true_user.email}</div>

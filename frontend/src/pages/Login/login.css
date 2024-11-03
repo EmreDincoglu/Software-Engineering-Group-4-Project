@@ -32,7 +32,7 @@
     font-size: 16px;
     font-weight: 400;
 }
-.register-link text {
+.register-link span {
     color: limegreen;
     font-size: 16px;
     font-weight: 400;
@@ -44,7 +44,7 @@
     font-size: 16px;
     font-weight: 400;
 }
-.login-link text {
+.login-link span {
     color: limegreen;
     font-size: 16px;
     font-weight: 400;
@@ -63,7 +63,7 @@
     align-items: center;
     gap: 15px;
 }
-.forgot-password text {
+.forgot-password span {
     color: #7cfc00;
     font-size: 16px;
     font-weight: 400;

@@ -1,7 +1,7 @@
 import React from "react";
 import {Navigate} from "react-router-dom";
 import "./home.css";
-import { getUser } from "../../lib";
+import { getUser } from "../../lib/backend";
 
 export default class HomePage extends React.Component {
     constructor(props) {
@@ -28,7 +28,7 @@ export default class HomePage extends React.Component {
         }
         if (this.state.user) {
             return (
-                <div class="grid-background">
+                <div className="grid-background">
                     <div className="title">
                         <h1> Welcome {this.state.user.username}!</h1>
                     </div>
@@ -36,7 +36,7 @@ export default class HomePage extends React.Component {
             );
         }
         return (<>
-            <div class = "grid-background"></div>
+            <div className = "grid-background"></div>
             <h1>Loading...</h1>
         </>);
     }

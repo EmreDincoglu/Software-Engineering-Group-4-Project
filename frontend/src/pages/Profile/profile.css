@@ -23,13 +23,15 @@
     justify-content: center;
     gap: 10px;
 }
-.profile-uname-and-icon img{
-    width: 32px;
-    border-radius: 50%;
-}
 .profile-uname-and-icon span{
-    font-size: 200%;
+    display: flex;
+    align-items: center;
+    padding-bottom: 0.125em;
+    font-size: 150%;
     font-weight: bold;
+}
+.profile-uname-and-icon .image-element{
+    width: 32px;
 }
 
 .profile-block .profile-email{

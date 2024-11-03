@@ -3,11 +3,7 @@ import {createRoot} from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 
-import LoginPage from './pages/Login/login';
-import {RootPage, AboutPage} from './pages/Root/root';
-import HomePage from './pages/Home/home'
-import ProfilePage from './pages/Profile/profile'
-import SpotifyCallbackPage from './pages/SpotifyAuthCallback/spotify';
+import {LoginPage, RootPage, AboutPage, HomePage, ProfilePage, SpotifyCallbackPage} from './pages/default';
 
 export default function App() {return (
     <BrowserRouter>
