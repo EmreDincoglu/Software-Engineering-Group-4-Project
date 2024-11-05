@@ -50,7 +50,12 @@ userSchema.methods = {
         return true;
     }
 };
-const UserModel = userDatabase.model('UserAccount', userSchema);
+
+const imageSchema = new mongoose.Schema({
+    name: String, 
+    //data stores the actual image, and also stores the content type
+    data: String
+}) 
 
 const messageSchema = new mongoose.Schema({
     date: { type: Date, required: true },
@@ -69,10 +74,11 @@ const profileSchema = new mongoose.Schema({
     answer_one: String,
     answer_two: String,
     answer_three: String,
-    profile_pic: 
-})
+    profile_pic: imageSchema
+});
 
 const ProfileModel = userDatabase.model('profileData', profileSchema);
+const UserModel = userDatabase.model('UserAccount', userSchema);
 
 module.exports = {
     User: UserModel,
