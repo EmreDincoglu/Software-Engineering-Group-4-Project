@@ -1,0 +1,212 @@
+const mongoose = require("mongoose");
+const momeent = require("moment");
+
+class User {
+
+    // ---------- ATTRIBUTES ---------- //
+
+    username;               /** @type {String} The username of the user **/
+    #_lc_username;          /** @type {String} Lowecase version of this.username **/
+    password;               /** @type {String} The password of the user **/
+    email;                  /** @type {String} The email of the user **/   
+    first_name = null;      /** @type {String} The first name of the user **/
+    last_name = null;       /** @type {String} The last name of the user **/
+    age = null;             /** @type {Number} The age of the user **/
+    #profile = null;        /** @type {User.Profile} The public profile of the user **/
+
+    #spotify_token = null;  /** @type {String} The user's spotify token **/
+
+    #session_id = null;     /** @type {Number} The user's session ID **/
+    #session_date = null;   /** @type {Date} The date of the user's session **/
+
+    // ---------- CONTSTRUCTOR ---------- //
+
+    constructor(
+        username, password, email, first_name = null, last_name = null, age = null
+    ) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.age = age;
+    }
+
+
+    // ========== OBJECT METHODS ========== //
+
+    // ---------- GETTERS / SETTERS ---------- //
+
+    /**
+        @param {String} username
+    **/
+    set username(username) {
+        this.username = username;
+        this.#_lc_username = this.username.toLowerCase();
+    }
+    
+    /**
+        @returns {String} lowercase username
+    **/
+    get #_lc_username() {
+        return this.#_lc_username;
+    }
+
+    /**
+        @param {String} password
+    **/
+    set password(password) {
+        this.password = password;
+        return 0;
+    }
+
+    /**
+        @param {String} email
+    **/
+    set email(email) {
+        this.email = email;
+    }
+
+    /**
+        @param {String} first_name
+    **/
+    set first_name(first_name) {
+        this.first_name = first_name;
+    }
+
+    /**
+        @param {String} last_name
+    **/
+    set last_name(last_name) {
+        this.last_name = last_name;
+    }
+
+    /**
+        @param {Number} age
+    **/
+    set age(age) {  
+        this.age = age;
+    }
+
+    /**
+        @returns {User.Profile} the user profile
+    **/
+    get profile() {
+        return this.#profile;
+    }
+
+    /**
+        @returns {Number} session ID
+    **/
+    get session_id() {
+        return this.#session_id;
+    }
+
+    /** 
+        @returns {Date} session date
+    **/
+    get session_date() {
+        return this.#session_date;
+    }
+
+    /**
+        @param {String} spotify_token new spotify token
+    **/
+   set spotify_token(spotify_token) {
+        this.#spotify_token = spotify_token;
+   }
+
+    /** 
+        @returns {String} user's spotify token
+    **/
+    get spotify_token() {
+        return this.#spotify_token;
+    }
+
+    // ---------- SESSION RELATED METHODS ----------
+
+    /**
+        Generates a new session for the user.
+    **/
+    generateSession() {
+        this.#session_id = User.generateSessionID();
+        this.#session_date = Date.now();
+    }
+
+    /** 
+        Ends the user's session
+    **/
+    endSession() {
+        this.#session_id = null;
+        this.#session_date = null;
+    }
+
+    /**
+     * @param {Number} session_id the session ID to validate against user's session
+     * @returns {boolean} true if the session ID is valid, false otherwise
+    **/
+    validateSession(session_id) {
+        if (this.session_id != session_id) { return false; }
+
+        if (this.session_date == null || moment(Date.now()).diff(moment(this.session_date), 'days') > 1.0) {
+            this.endSession();
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // ========== STATIC METHODS ========== //
+
+    // ---------- VALIDATION ---------- //
+
+    /**
+            @param {String} username username to check the validity of
+            @param {mongoose.Connection} database database to check for username validity in
+            @returns {boolean} true if the username is valid, otherwise false
+        **/
+    static async validateUsername(username, database) {
+        if (await database.model('UserAccount').findOne({ _lc_uname: username.toLowerCase() })) { return false; }
+        return true;
+    }
+
+    /**
+        @param {String} password password to validate
+        @param {mongoose.Connection} database database to validate password in
+        @returns {boolean} true if the password is valid, otherwise false
+    **/
+    static async validatePassword(password, database) {
+          return true;  
+    }
+
+    /**
+            @param {String} email emsil to check the validity of
+            @param {mongoose.Connection} database database to check for email validity in
+            @returns {boolean} true if the email is valid, otherwise false
+        **/
+    static async validateEmail(email, database) {
+        if (await userDatabase.model('UserAccount').findOne({ _lc_uname: email })) { return false; }
+        return true;
+    }
+
+    // ---------- SESSION RELATED METHODS ---------- //
+
+    /**
+        @returns {Number} a randomly generated session ID
+    **/
+    static generateSessionID() {
+        return Math.floor(Mathh.random() * 10_000_000);
+    }
+}
+
+
+User.Profile = class {
+    // things the user's public profile (may) have
+    #profile_description;
+    #profile_image;
+}
+
+exports = {
+    UserClass: User
+};
