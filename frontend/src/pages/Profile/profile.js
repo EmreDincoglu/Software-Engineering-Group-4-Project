@@ -63,7 +63,10 @@ export default function ProfilePage(){
                 <div className= "age-enter">
                 <h3> and I am </h3>
                 <div className = "age">
-                <input type = "number" class = "age-input" placeholder = "Your age"
+                <input type = "number"
+                       class = "age-input"
+                       placeholder = "Your age"
+                       value = {this.state.age}
                required/>
                 </div>
                 <h3> years old.</h3>
@@ -78,7 +81,7 @@ export default function ProfilePage(){
                             <option value="2">What inspires you?</option>
                             <option value="3">What's your dream job?</option>
                         </select>
-                        <textarea placeholder="Answer here"></textarea>
+                        <textarea placeholder="Answer here" required />
                     </div>
 
                     <div class="prompt">
