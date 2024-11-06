@@ -6,14 +6,6 @@ h3{
     font-weight: 500;
 }
 
-.grid-background {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100vw;
-    height: 70vh;
-}
-
 .profile-box-one{
     display: flex;
     flex-direction: column;

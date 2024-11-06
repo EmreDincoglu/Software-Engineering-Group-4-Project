@@ -55,19 +55,3 @@
 .nav-bar-page-links a:hover{
     color: hotpink
 }
-
-.heartbeatz-title{
-    color: limegreen;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-}
-
-.heartbeatz-title h1{
-    font-weight: 700;
-    justify-content: right;
-}
-
-.slogan{
-    font-weight: 500;
-}
