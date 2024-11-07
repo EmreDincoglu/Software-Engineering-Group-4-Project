@@ -1,8 +1,8 @@
 import './App.css';
-import LoginPage from './login-page/LoginPage';
+import AboutPage from '/pages/Root/root.js';
 
 function App() {
-    return (LoginPage());
+    return <AboutPage />;
 }
 
 export default App;

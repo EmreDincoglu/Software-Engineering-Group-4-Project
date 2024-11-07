@@ -21,18 +21,6 @@ export function RootPage(){return (
 
 export function AboutPage(){return (
     <div>
-        <div className = "grid-background"/>
-        <div className="heartbeatz-title">
-            <img src="%PUBLIC_URL%/HEARTBEATZ%20LOGO-01.png"/>
-            <h1>HEARTBEATZ</h1>
-        </div>
-        <div className = "slogan">
-            <h2>The app for people who something something</h2>
-        </div>
-        <div className = "about-us-text">
-            <h3> We are HEARTBEATZ and our mission is to blah blah love blah </h3>
-        {/*    Add pictures of random people being happy and screenshots of the app here*/}
-        </div>
+        <text>About Page</text>
     </div>
-);
-}
+);}
