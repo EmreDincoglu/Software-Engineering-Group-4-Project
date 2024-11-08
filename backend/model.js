@@ -4,6 +4,7 @@ const moment = require('moment');
 const userDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0');
 const messageDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0');
 
+
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true},
     // lowercase version of username, used for uniqueness of usernames
@@ -49,7 +50,12 @@ userSchema.methods = {
         return true;
     }
 };
-const UserModel = userDatabase.model('UserAccount', userSchema);
+
+const imageSchema = new mongoose.Schema({
+    name: String, 
+    //data stores the actual image, and also stores the content type
+    data: String
+}) 
 
 const messageSchema = new mongoose.Schema({
     date: { type: Date, required: true },
@@ -58,8 +64,25 @@ const messageSchema = new mongoose.Schema({
     recipient: { type: String, required: true }
 });
 
+const profileSchema = new mongoose.Schema({
+    _lc_uname: {type: String, required: true},
+    pref_name: String,
+    age: Number,
+    prompt_one: String,
+    prompt_two: String,
+    prompt_three: String,
+    answer_one: String,
+    answer_two: String,
+    answer_three: String,
+    profile_pic: imageSchema
+});
+
+const ProfileModel = userDatabase.model('profileData', profileSchema);
+const UserModel = userDatabase.model('UserAccount', userSchema);
+
 module.exports = {
     User: UserModel,
+    Profile: ProfileModel,
     messageSchema: messageSchema,
     messageDB: messageDatabase
 };
