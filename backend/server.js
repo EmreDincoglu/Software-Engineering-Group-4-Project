@@ -31,6 +31,7 @@ app.post('/createUser', mongo.createUser);
 app.post('/createSession', mongo.createSession);
 app.post('/uploadSpotifyAuth', mongo.uploadSpotifyAuth);
 app.post('/sendMessage', mongo.sendMessage);
+app.post('/createPost', mongo.createPost);
 
 app.put('/editProfile', mongo.editProfile);
 

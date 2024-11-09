@@ -214,13 +214,35 @@ const editProfile = async(req, res, _) => {
     profile.answer_three = req.body.response_three;
     /*
     req.body.profile_pic is this {
-        name: "InsertNameHere"
         data: "contentType + base64 image data"
     }
     */
     profile.profile_pic = req.body.profile_pic;
     await profile.save();
     res.json({success: true, profile});
+}
+
+const createPost = async(req, res, _) => {
+    //auth session
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    //makes the post and inserts data
+    const newPost = new model.Post();
+    newPost.date = Date.now();
+    newPost.user_ID = user._id;
+    newPost.desc = req.body.desc;
+    newPost.likes = 0;
+    newPost.song_id = req.body.song_id;
+    newPost.post_image = req.body.post_image;
+    //saves post
+    newPost.save();
+    //gets the postID so we can save it to a separate db for specific users
+    let postID = newPost._id;
+    const PostCollection = model.userPostDB.model(user._id.toString(), model.PostPointer);
+    const postPointer = new PostCollection({
+        post_id: postID
+    })
+    res.json({success: true, message: await postPointer.save()});
 }
 
 /*
@@ -238,4 +260,5 @@ module.exports = {
     getMessages: getMessages,
     editProfile: editProfile,
     getProfile: getProfile,
+    createPost: createPost
 };
