@@ -129,8 +129,8 @@ const sendMessage = async (req, res, _) => {
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
     // get/create model for user->recipient message database
     let messageCollectionName;
-    if (user._lc_uname < recipient._lc_uname) {messageCollectionName = user._lc_uname + ":" + recipient._lc_uname;}
-    else {messageCollectionName = recipient._lc_uname + ":" + user._lc_uname;}
+    if (user._id < recipient._id) {messageCollectionName = user._id + ":" + recipient._id;}
+    else {messageCollectionName = recipient._id + ":" + user._id;}
     const Message = model.messageDB.model(messageCollectionName, model.messageSchema);
     // create new message
     const message = new Message({
@@ -245,6 +245,54 @@ const createPost = async(req, res, _) => {
     res.json({success: true, message: await postPointer.save()});
 }
 
+async function findPost(postID) {
+    let post = await model.Post.findOne({_id: postID});
+    if (!post) return null;
+    return post;
+}
+
+const likePost = async(req, res, _) => {
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    let post = await findPost(req.post_id);
+    if (!post) res.json({success: false, message: "post does not exist"});
+    const likeCollection = model.userLikedDB.model(user._id.toString(), model.likesPointer);
+    let pointer = await likeCollection.findOne({post_id: req.post_id});
+    if (pointer) {
+        likeCollection.deleteOne({post_id: req, post_id});
+        post.likes = post.likes - 1;
+        await post.save();
+    }
+    else {
+        const newLikePointer = new likeCollection({
+            post_id: post._id
+        })
+        await newLikePointer.save();
+        post.likes = post.likes + 1;
+        await post.save();
+    }
+    res.json({success: true});
+}
+
+const blockUser = async(res, res , _) => {
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    const blockedUser = await model.User.findById(res.user_id);
+    if (!blockedUser) res.json({success: false, invalid_user: true});
+    const blockedCollection = model.userBlockedDB.model(user._id, model.blockedPointer);
+    const foundUser = await blockedCollection.findOne({user_id: res.user_id});
+    if (!foundUser) {
+        const newBlock = new blockedCollection({
+            user_id: res.user_id
+        })
+        await newBlock.save();
+        res.json({success: true, blocked: true});
+    }
+    else {
+        await blockedCollection.deleteOne({user_id: res.user_id});
+        res.json({success: true, unblocked: true});
+    }
+}
 /*
     Export Methods for server.js
 */
@@ -260,5 +308,7 @@ module.exports = {
     getMessages: getMessages,
     editProfile: editProfile,
     getProfile: getProfile,
-    createPost: createPost
+    createPost: createPost,
+    likePost: likePost,
+    blockUser: blockUser
 };

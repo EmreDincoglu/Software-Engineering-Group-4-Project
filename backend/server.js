@@ -32,6 +32,9 @@ app.post('/createSession', mongo.createSession);
 app.post('/uploadSpotifyAuth', mongo.uploadSpotifyAuth);
 app.post('/sendMessage', mongo.sendMessage);
 app.post('/createPost', mongo.createPost);
+//likePost and block user are like a switch, if you call likePost and its already liked it will unlike it and vise versa
+app.post('/likePost', mongo.likePost);
+app.post('/blockUser', mongo.blockUser);
 
 app.put('/editProfile', mongo.editProfile);
 
