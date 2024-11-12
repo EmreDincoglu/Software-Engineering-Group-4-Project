@@ -11,7 +11,7 @@ const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
     Request Methods:
 */
 // Create a new user, returns the user if successful
-// Requires username, email, first_name, last_name, password, and age fields
+// Requires username, email, password
 const createUser = async (req, res) => {
     // parse input into a userModel object
     req.body.email = req.body.email.toLowerCase();
@@ -47,9 +47,12 @@ const deleteUser = async (req, res) => {
 const createSession = async (req, res) => {
     let resp_data = {success: true};
     // find user
-    const user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
-    if (!user) {
-        resp_data.success = false; resp_data.invalid_username = true; res.json(resp_data); return;
+    let user = await model.User.findOne({_lc_uname: req.body.username.toLowerCase()});
+    if (user == null) {
+        user = await model.User.findOne({email: req.body.username.toLowerCase()});
+    }
+    if (user == null) {
+        res.json({success: false, invalid_user: true}); return;
     }
     // check password
     if (user.password != req.body.password) {
@@ -60,7 +63,7 @@ const createSession = async (req, res) => {
     // return session
     res.cookie('session_id', user.session_id);
     res.cookie('user_id', user.id);
-    res.json(resp_data);
+    res.json({success: true});
 }
 
 // returns the user, authenticating the session as well
@@ -100,7 +103,8 @@ const authSpotify = async (req, res) => {
       client_id: CLIENTID,
       scope: needed_scope,
       redirect_uri: REDIRECTURI,
-      state: user_id
+      state: user_id,
+      show_dialog: 'true'
     })});
 }
 
@@ -109,6 +113,7 @@ const uploadSpotifyAuth = async (req, res) => {
     if (req.body.user_id != req.cookies.user_id) {res.json({sucess: false, non_matching_user_ids: true}); return;}
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
+    // upload token
     user.spotify_token = req.body.token;
     await user.save();
     res.json({success: true});
@@ -125,7 +130,10 @@ const sendMessage = async (req, res, _) => {
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     // ensure recipient does actually exist
-    const recipient = await model.User.findById(req.body.recipient).findOne();
+    console.log(user);
+    req.body.recipient = req.body.recipient.toLowerCase();
+    const recipient = await model.User.findOne({_lc_uname: req.body.recipient});
+    console.log(recipient);
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
     // get/create model for user->recipient message database
     let messageCollectionName;
@@ -145,7 +153,7 @@ const sendMessage = async (req, res, _) => {
 
 const getMessages = async (req, res, _) => {
     // authenticate session
-    const user = await get_user(req.body.session, req.body.user);
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     // ensure recipient does actually exist
     const recipient = await model.User.findById(req.body.recipient).findOne();
@@ -161,9 +169,72 @@ const getMessages = async (req, res, _) => {
      res.json(msgArr);
 }
 
+async function createProfile(_lc_uname) {
+    //sets everything as null for the time being, this is under the assumption that the user exists but they have
+    //yet to create their profile
+    const newProfile = new model.Profile();
+    newProfile._lc_uname = _lc_uname;
+    newProfile.pref_name = null;
+    newProfile.age = null;
+    newProfile.prompt_one = null;
+    newProfile.prompt_two = null;
+    newProfile.prompt_three = null;
+    newProfile.answer_one = null;
+    newProfile.answer_two = null;
+    newProfile.answer_three = null;
+    newProfile.profile_pic = null;
+    await newProfile.save();
+    return newProfile;
+}
+
+const getProfile = async(req, res, _) => {
+    //authenticate session
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    /*
+    finds profile, if it doesn't exist, makes one automatically only if the user does exist.
+    (this allows us to get null data from a profile, for instance if someone hasnt edited their profile but we know their user
+    exists, then it will just send back an empty profile of data that will be filled in eventually)
+    */
+    if (!await model.User.findOne({_lc_uname: req.body.username.toLowerCase()}))
+    {res.json({success: false, invalid_user: true})}
+    let profile = await model.Profile.findOne({_lc_uname: req.body.username.toLowerCase()});
+    if (!profile) {profile = await createProfile(req.body.username);}
+    res.json(profile);
+}
+
+const editProfile = async(req, res, _) => {
+    //auth session
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    console.log(user);
+    //finds profile, if it doesn't exist it makes one
+    let profile = await model.Profile.findOne({_lc_uname: user._lc_uname});
+    if (!profile) {profile = await createProfile(user._lc_uname)}
+    //theres gotta be a cleaner way of doing this
+    profile.pref_name = req.body.pref_name;
+    profile.age = req.body.age;
+    profile.prompt_one = req.body.prompt_one;
+    profile.prompt_two = req.body.prompt_two;
+    profile.prompt_three = req.body.prompt_three;
+    profile.answer_one = req.body.response_one;
+    profile.answer_two = req.body.response_two;
+    profile.answer_three = req.body.response_three;
+    /*
+    req.body.profile_pic is this {
+        name: "InsertNameHere"
+        data: "contentType + base64 image data"
+    }
+    */
+    profile.profile_pic = req.body.profile_pic;
+    await profile.save();
+    res.json({success: true, profile});
+}
+
 /*
     Export Methods for server.js
 */
+
 module.exports = {
     createUser: createUser,
     createSession: createSession,
@@ -174,4 +245,6 @@ module.exports = {
     getUserData: getUserData,
     getMessages: getMessages,
     deleteUser: deleteUser,
+    editProfile: editProfile,
+    getProfile: getProfile,
 };
