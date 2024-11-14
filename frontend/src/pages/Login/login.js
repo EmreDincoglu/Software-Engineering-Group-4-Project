@@ -55,7 +55,7 @@ export default class LoginPage extends React.Component {
     if (this.state.isLogin) { return (<>
       <div class= "grid-background"></div>
       <div className="login-body">
-        <form onSubmit={this.handleLogin}>
+        <form onSubmit={this.handleLogin ? this.handleLogin : this.handleRegister}>
           <h1>Login</h1>
           <input 
             type="text" 

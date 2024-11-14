@@ -6,7 +6,7 @@ import { useAuth } from '../Login/AuthProvider';
 
 
 export function RootPage(){
-    const { isLoggedIn } = useAuth();
+    const { isLoggedin } = useAuth();
 
     return (
         <>
@@ -16,15 +16,16 @@ export function RootPage(){
                     <Link className="app-name-beatz" to="/">Beatz</Link>
                 </div>
                 <div className='nav-bar-page-links'>
-                    {isLoggedIn ? (
+                    {isLoggedin ? (
                         <>
-                            <Link to="/home">Home</Link>
-                            <Link to="/profile">Profile</Link>
+                            <Link to="/home" key={"home"}>Home</Link>
+                            <Link to="/profile" key={"profile"}>Profile</Link>
+                            <Link to="/messages" key={"messages"}>Messages</Link>
                         </>
                     ) : (
                         <>
-                            <Link to="/">About</Link>
-                            <Link to="/login">Login</Link>
+                            <Link to="/" key={"about"}>About</Link>
+                            <Link to="/login" key={"login"}>Login</Link>
                         </>
                     )}
                 </div>

@@ -1,13 +1,17 @@
+.grid-background{
+    z-index: -10;
+}
 .login-body{
     width: 420px;
     box-sizing: border-box;
-    background: black;
+    background-color: black;
     border: 5px solid hotpink;
     border-radius: 40px;
     padding: 40px;
     color: white;
     text-align: center;
     margin-top: 2.25vw;
+    z-index: 5;
 }
 .login-body h1 {
     font-size: 64px;
