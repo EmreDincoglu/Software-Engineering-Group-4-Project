@@ -15,7 +15,8 @@ class mock_Database {
     }
 
     print() {
-        console.log("\t\t -- print --");
+        console.log("\t\t -- database [mock] --");
+        console.log(`\t\t\t >>> length :: ${this.length()} <<<`);
         this.#database.forEach((element, index) => {
             let element_JSON_str = Object.entries(element).map(([key, value]) => `${key} : ${value}`);
             console.log(`\t\t > ${index} :: { ${element_JSON_str.join(", ")} }`);
@@ -34,9 +35,9 @@ class mock_Database {
     }
 
     contains(element) {
-        let index = this.#database((_element) => _element === element);
+        let index = this.#database.findIndex((_element) => _element === element);
 
-        if (index == null) { return false; }
+        if (index == null || index < 0 || index > this.length()) { return false; }
         return true;
     }
 

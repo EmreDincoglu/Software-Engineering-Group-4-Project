@@ -1,4 +1,5 @@
 const { mock_Database}  = await import("./mock_Database.js");
+const mongoose = require('mongoose');
 
 class mock_Model {
     static findJSON(JSON, database) {
@@ -22,7 +23,7 @@ class mock_Model {
     static save(model, database) {
         console.log('\t-- save called');
         return new Promise((resolve, reject) => {
-            let success = database.save(model);
+            let success = database.save(model, {_id: model._id});
             if (!success) {
                 reject('Failed to save model');
             }
