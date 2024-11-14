@@ -2,11 +2,9 @@ import { Outlet, Link } from "react-router-dom";
 import './root.css';
 import React from 'react';
 import { useAuth } from '../Login/AuthProvider';
-// This defines global web page constants, such as the navbar
-
 
 export function RootPage(){
-    const { isLoggedin } = useAuth();
+    const { isLoggedIn } = useAuth();
 
     return (
         <>
@@ -16,7 +14,7 @@ export function RootPage(){
                     <Link className="app-name-beatz" to="/">Beatz</Link>
                 </div>
                 <div className='nav-bar-page-links'>
-                    {isLoggedin ? (
+                    {isLoggedIn ? (
                         <>
                             <Link to="/home" key={"home"}>Home</Link>
                             <Link to="/profile" key={"profile"}>Profile</Link>

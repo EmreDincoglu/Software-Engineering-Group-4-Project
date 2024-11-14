@@ -1,0 +1,36 @@
+.grid-background{
+    position: relative;
+    z-index: -1;
+}
+
+.profile-step-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+}
+
+.profile-step-container input{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100px;
+    width:700px;
+    padding-top: 10px;
+}
+
+.profile-step-container label{
+    font-weight: 600;
+    font-size: 3rem;
+    }
+
+.profile-step-container input{
+    font-size: 3rem;
+    font-weight: 100;
+    color: lawngreen;
+    background-color: black;
+    border: 5px solid hotpink;
+}
+

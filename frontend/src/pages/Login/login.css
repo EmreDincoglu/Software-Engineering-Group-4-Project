@@ -1,5 +1,6 @@
 .grid-background{
     z-index: -10;
+    position: relative;
 }
 .login-body{
     width: 420px;
@@ -12,6 +13,7 @@
     text-align: center;
     margin-top: 2.25vw;
     z-index: 5;
+    position: relative;
 }
 .login-body h1 {
     font-size: 64px;

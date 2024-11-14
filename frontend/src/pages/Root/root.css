@@ -9,6 +9,7 @@
     align-items: center;
     border-bottom: solid white 0.1em;
     font-size: 2vw;
+    font-weight: 500;
     z-index: 1000;
     background:linear-gradient(to right, lawngreen, hotpink) ;
 }
@@ -28,10 +29,12 @@
 .app-name .app-name-heart{
     color:hotpink;
     justify-self: right;
+    font-weight: 900;
 }
 .app-name .app-name-beatz{
     color: limegreen;
     justify-self: left;
+    font-weight: 900;
 }
 .app-name a{
     text-decoration: none;
