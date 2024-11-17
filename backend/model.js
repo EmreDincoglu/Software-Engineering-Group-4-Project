@@ -3,7 +3,9 @@ const moment = require('moment');
 
 const userDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0');
 const messageDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0');
-
+const userPosts = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userPosts?retryWrites=true&w=majority&appName=Cluster0');
+const userLiked = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userLiked?retryWrites=true&w=majority&appName=Cluster0');
+const userBlocked = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userBlocked?retryWrites=true&w=majority&appName=Cluster0');
 
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true},
@@ -52,7 +54,6 @@ userSchema.methods = {
 };
 
 const imageSchema = new mongoose.Schema({
-    name: String, 
     //data stores the actual image, and also stores the content type
     data: String
 }) 
@@ -77,12 +78,46 @@ const profileSchema = new mongoose.Schema({
     profile_pic: imageSchema
 });
 
+const postSchema = new mongoose.Schema({
+    user_ID: {type: mongoose.ObjectId, required: true},
+    date: {type: Date, required: true},
+    desc: String,
+    likes: {type: Number, required: true},
+    song_id: String,
+    post_image: imageSchema
+});
+
+const userPostPointer = new mongoose.Schema({
+    post_id: {type: mongoose.ObjectId, required: true}
+})
+
+const userLikedPointer = new mongoose.Schema({
+    post_id: {type: mongoose.ObjectId, required: true}
+})
+
+const userBlockedPointer = new mongoose.Schema({
+    user_id: {type: mongoose.ObjectId, required: true}
+})
+
 const ProfileModel = userDatabase.model('profileData', profileSchema);
 const UserModel = userDatabase.model('UserAccount', userSchema);
+const PostModel = userDatabase.model('postData', postSchema);
 
 module.exports = {
+    //models
     User: UserModel,
     Profile: ProfileModel,
+    Post: PostModel,
+
+    //databases
+    messageDB: messageDatabase,
+    userPostDB: userPosts,
+    userLikedDB: userLiked,
+    userBlockedDB: userBlocked,
+
+    //schemas
+    PostPointer: userPostPointer,
     messageSchema: messageSchema,
-    messageDB: messageDatabase
+    likesPointer: userLikedPointer,
+    blockedPointer: userBlockedPointer
 };
