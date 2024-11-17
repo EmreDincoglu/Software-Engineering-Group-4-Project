@@ -1,7 +1,7 @@
 /*
     Imports:
 */
-const mongoose =  require('mongoose');
+const mongoose = require('mongoose');
 const model = require('./model');
 const querystring = require("querystring");
 const CLIENTID = "eff8ab475b084ac6b33354f145e05a36";
@@ -122,22 +122,19 @@ const sendMessage = async (req, res, _) => {
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     // ensure recipient does actually exist
-    console.log(user);
-    req.body.recipient = req.body.recipient.toLowerCase();
-    const recipient = await model.User.findOne({_lc_uname: req.body.recipient});
-    console.log(recipient);
+    const recipient = await model.User.findById(req.body.recipient_id.toString());
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
     // get/create model for user->recipient message database
     let messageCollectionName;
-    if (user._id < recipient._id) {messageCollectionName = user._id + ":" + recipient._id;}
-    else {messageCollectionName = recipient._id + ":" + user._id;}
+    if (user._id < recipient._id) {messageCollectionName = user._id.toString() + ":" + recipient._id.toString();}
+    else {messageCollectionName = recipient._id.toString() + ":" + user._id.toString();}
     const Message = model.messageDB.model(messageCollectionName, model.messageSchema);
     // create new message
     const message = new Message({
         date: Date.now(),
         message: req.body.message,
-        sender: user._lc_uname,
-        recipient: recipient._lc_uname
+        sender: user._id,
+        recipient: recipient._id
     });
     // save message to db and return
     res.json({success: true, message: await message.save()});
@@ -148,17 +145,17 @@ const getMessages = async (req, res, _) => {
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
     // ensure recipient does actually exist
-    const recipient = await model.User.findById(req.body.recipient).findOne();
+    const recipient = await model.User.findById(req.body.recipient_id);
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
-     // get/create model for user->recipient message database
-     let messageCollectionName;
-     if (user._lc_uname < recipient._lc_uname) {messageCollectionName = user._lc_uname + ":" + recipient._lc_uname;}
-     else {messageCollectionName = recipient._lc_uname + ":" + user._lc_uname;}
-     //goes to the specific collection of the two users
-     const collection = model.messageDB.model(messageCollectionName, model.messageSchema);
-     //collection.find without any parameters gets every value in that collection and put it in an array
-     var msgArr = collection.find();
-     res.json(msgArr);
+    // get/create model for user->recipient message database
+    let messageCollectionName;
+    if (user._id < recipient._id) {messageCollectionName = user._id.toString() + ":" + recipient._id.toString();}
+    else {messageCollectionName = recipient._id.toString() + ":" + user._id.toString();}
+    //goes to the specific collection of the two users
+    const collection = model.messageDB.model(messageCollectionName, model.messageSchema);
+    //collection.find without any parameters gets every value in that collection and put it in an array
+    var msgArr = await collection.find();
+    res.json(msgArr);
 }
 
 async function createProfile(_lc_uname) {
@@ -230,6 +227,7 @@ const createPost = async(req, res, _) => {
     const newPost = new model.Post();
     newPost.date = Date.now();
     newPost.user_ID = user._id;
+    console.log(user._id);
     newPost.desc = req.body.desc;
     newPost.likes = 0;
     newPost.song_id = req.body.song_id;
@@ -246,22 +244,25 @@ const createPost = async(req, res, _) => {
 }
 
 async function findPost(postID) {
-    let post = await model.Post.findOne({_id: postID});
-    if (!post) return null;
+    let post = await model.Post.findById(postID);
     return post;
 }
 
 const likePost = async(req, res, _) => {
+    //auth session
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
-    let post = await findPost(req.post_id);
-    if (!post) res.json({success: false, message: "post does not exist"});
+    //finds the post and ends it if its not a real post
+    let post = await findPost(req.body.post_id.toString());
+    if (!post) {res.json({success: false, message: "post does not exist"}); return;}
     const likeCollection = model.userLikedDB.model(user._id.toString(), model.likesPointer);
-    let pointer = await likeCollection.findOne({post_id: req.post_id});
+    let pointer = await likeCollection.findOne({post_id: post._id});
+    var likeOrDislike;
     if (pointer) {
-        likeCollection.deleteOne({post_id: req, post_id});
+        await likeCollection.deleteOne({post_id: post._id});
         post.likes = post.likes - 1;
         await post.save();
+        likeOrDislike = "disliked";
     }
     else {
         const newLikePointer = new likeCollection({
@@ -270,27 +271,28 @@ const likePost = async(req, res, _) => {
         await newLikePointer.save();
         post.likes = post.likes + 1;
         await post.save();
+        likeOrDislike = "liked";
     }
-    res.json({success: true});
+    res.json({success: true, status: likeOrDislike});
 }
 
-const blockUser = async(res, res , _) => {
+const blockUser = async(req, res , _) => {
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
-    const blockedUser = await model.User.findById(res.user_id);
-    if (!blockedUser) res.json({success: false, invalid_user: true});
-    const blockedCollection = model.userBlockedDB.model(user._id, model.blockedPointer);
-    const foundUser = await blockedCollection.findOne({user_id: res.user_id});
+    const blockedUser = await model.User.findById(req.body.user_id);
+    if (!blockedUser) {res.json({success: false, invalid_user: true}); return;}
+    const blockedCollection = model.userBlockedDB.model(user._id.toString(), model.blockedPointer);
+    const foundUser = await blockedCollection.findOne({user_id: req.body.user_id});
     if (!foundUser) {
         const newBlock = new blockedCollection({
-            user_id: res.user_id
+            user_id: blockedUser._id
         })
         await newBlock.save();
-        res.json({success: true, blocked: true});
+        res.json({success: true, blocked: true, name: blockedUser.username});
     }
     else {
-        await blockedCollection.deleteOne({user_id: res.user_id});
-        res.json({success: true, unblocked: true});
+        await blockedCollection.deleteOne({user_id: req.body.user_id});
+        res.json({success: true, unblocked: true, name: blockedUser.username});
     }
 }
 /*
