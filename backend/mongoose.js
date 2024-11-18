@@ -119,68 +119,6 @@ const uploadSpotifyAuth = async (req, res) => {
     res.json({success: true});
 }
 
-// Updates attributes of a user account. 
-// Returns the updated user if successful, and re_authSpotify if spotify needs to be reauthenticated
-// Requires username, email, password, first_name, last_name, age
-const updateUser = async (req, res) => {
-    user = await get_user(req.cookies.session_id, req.cookies.user_id);
-    if (!user) {res.json({success: false, invalid_session: true}); return;}
-     
-    let resp_data = {
-        valid_username: false,
-        valid_email: false,
-    };
-    // used to verify the updated username and email
-    let updatedUser_data = {
-        // changing username may cause issues with things using it as constant (ie messaging)
-        // username: req.body.new_username,
-        username: "temp",
-        _lc_uname: req.body.new_username.toLowerCase(),
-        password: req.body.new_password,
-        email: req.body.new_email.toLowerCase()
-    };
-
-    const updatedUser = new model.User(updatedUser_data);
-
-    /*
-    // verify new username and email
-    if (updatedUser._lc_uname == user._lc_uname || 
-        await updatedUser.checkUniqueUsername()) {
-            resp_data.valid_username = true;
-    }
-    */
-    resp_data.valid_username = true;
-        // may need to verify new email with extra steps
-    if (updatedUser.email == user.email ||
-        await updatedUser.checkUniqueEmail()) {
-            resp_data.valid_email = true;
-        }
-    resp_data.success = resp_data.valid_username && resp_data.valid_email;
-    if (!resp_data.success) {res.send(resp_data); return;}
-    
-    // if successful (ie. valid new_username and new_email) then update the user
-    // user.username = updatedUser.username;
-    user._lc_uname = updatedUser._lc_uname;
-    user.password = updatedUser.password;
-    user.email = updatedUser.email;
-    if (req.body.new_first_name) {
-        user.first_name = req.body.new_first_name;
-    }
-    if (req.body.new_last_name) {
-        user.last_name = req.body.new_last_name;
-    }
-    if (req.body.new_age) {
-        user.age = req.body.new_age;
-    }
-
-    // update the user
-    await user.save();
-
-    //  Don't know if updating session/user_id is needed
-
-    res.send(resp_data);
-}
-
 /* Sends a message between two users
 Input: {
     recipient: ObjectId (_id property of recipient user),
@@ -378,7 +316,6 @@ module.exports = {
     sendMessage: sendMessage,
     getUserData: getUserData,
     getMessages: getMessages,
-    updateUser: updateUser
     deleteUser: deleteUser,
     editProfile: editProfile,
     getProfile: getProfile,
