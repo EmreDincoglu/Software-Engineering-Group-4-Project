@@ -2,8 +2,17 @@ import React from "react";
 import './login.css';
 import { createUser, loginUser } from '../../lib';
 import { Navigate } from "react-router-dom";
+import { useAuth } from './AuthProvider';
 
-export default class LoginPage extends React.Component {
+function withAuth(Component) {
+  return function AuthComponent(props) {
+    const auth = useAuth();
+    return <Component {...props}  auth={auth}/>;
+  };
+}
+
+ class LoginPage extends React.Component {
+
   constructor(props){
     super(props);
     this.state = {
@@ -32,6 +41,7 @@ export default class LoginPage extends React.Component {
     const creds = {username: this.state.username, password: this.state.password};
     const result = await loginUser(creds);
     if (!result.success) {alert(result.fail_message); return;}
+    if (result.success){this.props.auth.setIsLoggedIn(true);}
     this.setState({redirectToHomepage: true});
   }
   async handleRegister(event) {
@@ -39,6 +49,7 @@ export default class LoginPage extends React.Component {
     const creds = {username: this.state.username, password: this.state.password, email: this.state.email};
     const result = await createUser(creds);
     if (!result.success) {alert(result.fail_message); return;}
+    if (result.success){this.props.auth.setIsLoggedIn(true);}
     this.setState({redirectToHomepage: true});
   }
   swapLogin() {
@@ -53,9 +64,9 @@ export default class LoginPage extends React.Component {
   render() {
     if (this.state.redirectToHomepage) {return <Navigate to='/home'/>;}
     if (this.state.isLogin) { return (<>
-      <div class= "grid-background"></div>
+      <div className= "grid-background"></div>
       <div className="login-body">
-        <form onSubmit={this.handleLogin}>
+        <form onSubmit={this.handleLogin ? this.handleLogin : this.handleRegister}>
           <h1>Login</h1>
           <input 
             type="text" 
@@ -131,3 +142,5 @@ export default class LoginPage extends React.Component {
     </>);}
   }
 }
+
+export default withAuth(LoginPage);

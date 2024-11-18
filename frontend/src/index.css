@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
+@import url("https://use.typekit.net/jsw1kxj.css");
+
+
 body {
-    font-family: 'Inconsolata', monospace;
+    font-family: 'Cy', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: white;

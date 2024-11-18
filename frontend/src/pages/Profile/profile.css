@@ -124,3 +124,24 @@ select {
     transform: none;
 }
 
+button{
+    background: lawngreen;
+    padding: 0.5em;
+    color: white;
+    font-size: 125%;
+    display: inline-block;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    justify-content: right;
+}
+button:hover{
+    border: 2px solid white;
+}
+
+.next-button{
+    justify-self: flex-end;
+
+}
