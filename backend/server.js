@@ -40,8 +40,6 @@ app.delete('/deleteUser', mongo.deleteUser);
 
 app.put('/editProfile', mongo.editProfile);
 
-app.put('/updateUser', mongo.updateUser)
-
 /*
     App Start:
 */
