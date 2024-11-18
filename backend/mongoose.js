@@ -132,7 +132,9 @@ const updateUser = async (req, res) => {
     };
     // used to verify the updated username and email
     let updatedUser_data = {
-        username: req.body.new_username,
+        // changing username may cause issues with things using it as constant (ie messaging)
+        // username: req.body.new_username,
+        username: "temp",
         _lc_uname: req.body.new_username.toLowerCase(),
         password: req.body.new_password,
         email: req.body.new_email.toLowerCase()
@@ -140,11 +142,14 @@ const updateUser = async (req, res) => {
 
     const updatedUser = new model.User(updatedUser_data);
 
+    /*
     // verify new username and email
     if (updatedUser._lc_uname == user._lc_uname || 
         await updatedUser.checkUniqueUsername()) {
             resp_data.valid_username = true;
     }
+    */
+    resp_data.valid_username = true;
         // may need to verify new email with extra steps
     if (updatedUser.email == user.email ||
         await updatedUser.checkUniqueEmail()) {
@@ -154,7 +159,7 @@ const updateUser = async (req, res) => {
     if (!resp_data.success) {res.send(resp_data); return;}
     
     // if successful (ie. valid new_username and new_email) then update the user
-    user.username = updatedUser.username;
+    // user.username = updatedUser.username;
     user._lc_uname = updatedUser._lc_uname;
     user.password = updatedUser.password;
     user.email = updatedUser.email;
