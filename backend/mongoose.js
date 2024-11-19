@@ -423,7 +423,7 @@ module.exports = {
     sendMessage: sendMessage,
     getUserData: getUserData,
     getMessages: getMessages,
-    updateUser: updateUser
+    updateUser: updateUser,
     deleteUser: deleteUser,
     editProfile: editProfile,
     getProfile: getProfile,
