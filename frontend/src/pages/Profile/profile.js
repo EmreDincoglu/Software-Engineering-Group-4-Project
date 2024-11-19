@@ -56,7 +56,7 @@ export default function ProfilePage() {
 
         let age = today.getFullYear()-birth.getFullYear();
 
-        const monthandday = today.getMonth() > birth.getMOnth() ||
+        const monthandday = today.getMonth() > birth.getMonth() ||
             (today.getMonth() === birth.getMonth() &&
                 today.getDate() >= birth.getDate());
         if (!monthandday){
@@ -88,25 +88,27 @@ export default function ProfilePage() {
 
     const handlePhotoUpload = async(index, event) => {
         const files = Array.from(event.target.files);
-        const newPhotos = files.map((file) => URL.createObjectURL(file));
 
-        const file = event.target.files[0];
-        if (!file) return;
+        if (!files.length) return;
 
-        if (file.size > 5 * 1024 * 1024) {
+        if (files.some(file => file.size > 5 * 1024 * 1024)) {
             setPhotoError('File size must be less than 5MB.');
             return;
         }
 
-        if (profileData.photos.length + newPhotos.length > 9) {
+        if (profileData.photos.length + files.length > 9) {
             setPhotoError('You can upload a maximum of 9 photos.');
             return;
         }
 
-        const formData = new FormData();
-        profileData.photos.forEach((photo) => formData.append('photos', photo));
+        const newPhotoURLs = files.map(file => URL.createObjectURL(file));
+        setProfileData(prevData=> ({
+            ...prevData,
+            photos: [...prevData.photos, ...newPhotoURLs.slice(0,9 - prevData.photos.length)],
+        }))
 
-        const photoURL = URL.createObjectURL(file);
+        const formData = new FormData();
+        files.forEach(file => formData.append('photos', file));
 
         try {
             const response = await fetch('http://localhost:5000/api/uploadPhotos', {
@@ -125,12 +127,6 @@ export default function ProfilePage() {
             console.error('Error uploading photos:', error);
             alert('Something went wrong.');
         }
-
-        setProfileData((prevData) => {
-            const updatedPhotos = [...prevData.photos];
-            updatedPhotos[index] = photoURL;
-            return { ...prevData, photos: updatedPhotos };
-        });
 
         setPhotoError('');
     };
@@ -186,7 +182,7 @@ export default function ProfilePage() {
                         <input
                             type="date"
                             value={profileData.birthday}
-                            onChange={(e) => handleBirthdayChange('birthday', e.target.value)}
+                            onChange={(e) => handleBirthdayChange( e.target.value)}
                         />
                     </div>
                 //     calculate age also
@@ -194,37 +190,20 @@ export default function ProfilePage() {
             case 3:
             return(
                 <div>
-                    <h2>What is your gender</h2>
-                    <div className='gender-buttons'>
-                    <label>
-                    <input
-                        type='radio'
-                        name='gender'
-                        value='Man'
-                        checked={profileData.gender === 'Man'}
-                        onChange={(e)=> handleInputChange('gender', e.target.value)}
-                    />Man
-                    </label>
-                    <label>
-                        <input
-                            type='radio'
-                            name='gender'
-                            value='woman'
-                            checked={profileData.gender === 'Woman'}
-                            onChange={(e)=>handleInputChange('gender', e.target.value)}
-                            />
-                        Woman
-                    </label>
-                    <label>
-                        <input
-                        type='radio'
-                        name='gender'
-                        value= 'other'
-                        checked={profileData.gender === 'other'}
-                        onChange={(e)=>handleInputChange()}
-                        />
-                        Other
-                    </label>
+                    <h2>What is your gender?</h2>
+                    <div className="gender-buttons">
+                        {['Man', 'Woman', 'Other'].map((genderOption) => (
+                            <label key={genderOption}>
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value={genderOption}
+                                    checked={profileData.gender === genderOption}
+                                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                                />
+                                {genderOption}
+                            </label>
+                        ))}
                     </div>
                 </div>
             );
@@ -240,7 +219,7 @@ export default function ProfilePage() {
                                         name='gender'
                                         value='Straight'
                                         checked={profileData.sexual_orientation === 'straight'}
-                                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
                                     />Straight
                                 </label>
                                 <label>
@@ -249,7 +228,7 @@ export default function ProfilePage() {
                                         name='gender'
                                         value='gay'
                                         checked={profileData.sexual_orientation === 'gay'}
-                                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
                                     />
                                     Gay
                                 </label>
@@ -259,7 +238,7 @@ export default function ProfilePage() {
                                         name='gender'
                                         value='bisexual'
                                         checked={profileData.sexual_orientation === 'bi'}
-                                        onChange={(e) => handleInputChange()}
+                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
                                     />
                                     Bisexual
                                 </label>
@@ -269,7 +248,7 @@ export default function ProfilePage() {
                                         name='gender'
                                         value='pansexual'
                                         checked={profileData.sexual_orientation === 'pan'}
-                                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
                                     />
                                     Pansexual
                                 </label>
@@ -281,93 +260,62 @@ export default function ProfilePage() {
             case 5:
                 return (
                     <div>
-                        <div>
-                            <h2>What is your gender preference</h2>
-                            <div className='gender-pref-buttons'>
-                                <label>
+                        <h2>What is your gender preference?</h2>
+                        <div className="gender-pref-buttons">
+                            {['Man', 'Woman', 'Other'].map((genderprefOption) => (
+                                <label key={genderprefOption}>
                                     <input
-                                        type='radio'
-                                        name='gender'
-                                        value='Man'
-                                        checked={profileData.gender_preference === 'Man'}
-                                        onChange={(e) => handleInputChange('gender', e.target.value)}
-                                    />Man
-                                </label>
-                                <label>
-                                    <input
-                                        type='radio'
-                                        name='gender'
-                                        value='woman'
-                                        checked={profileData.gender_preference === 'Woman'}
-                                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                                        type="radio"
+                                        name="gender-pref"
+                                        value={genderprefOption}
+                                        checked={profileData.gender_preference === genderprefOption}
+                                        onChange={(e) => handleInputChange('gender_preference', e.target.value)}
                                     />
-                                    Woman
+                                    {genderprefOption}
                                 </label>
-                                <label>
-                                    <input
-                                        type='radio'
-                                        name='gender'
-                                        value='other'
-                                        checked={profileData.gender_preference === 'other'}
-                                        onChange={(e) => handleInputChange()}
-                                    />
-                                    Other
-                                </label>
-                            </div>
+                            ))}
                         </div>
-                    </div>
-                )
+            </div>
+            )
             case 6:
                 return (
                     <div>
                         <h2>What are your goals for a relationship?</h2>
-                        <div className='relationship-goal-buttons'>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='relationshipgoal'
-                                    value='short-term'
-                                    checked={profileData.relationship_goals === 'Short-Term'}
-                                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                                />Short Term
-                            </label>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='relationshipgoal'
-                                    value='long-term'
-                                    checked={profileData.relationship_goals === 'Long-Term'}
-                                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                                />
-                                Long Term
-                            </label>
-                            <label>
-                                <input
-                                    type='radio'
-                                    name='relationshipgoal'
-                                    value='nothing-serious'
-                                    checked={profileData.relationship_goals === 'nothing-serious'}
-                                    onChange={(e) => handleInputChange()}
-                                />
-                                    Nothing Serious
-                            </label>
+                        <div className="relationship_goal-buttons">
+                            {['Long-Term', 'Short-Term', 'Other'].map((relationshipOption) => (
+                                <label key={relationshipOption}>
+                                    <input
+                                        type="radio"
+                                        name="relationship"
+                                        value={relationshipOption}
+                                        checked={profileData.relationship_goals === relationshipOption}
+                                        onChange={(e) => handleInputChange('relationship_goals', e.target.value)}
+                                    />
+                                    {relationshipOption}
+                                </label>
+                            ))}
                         </div>
-            </div>
-            )
+                    </div>
+                )
             case 7:
-                const animatecomps = makeAnimated();
 
                 return (
-                   <div>
+                    <div>
                         <h2>What are your favorite music genres & artists?</h2>
                         <h3>Pick 3 max</h3>
-                        <Select
-                            components={animatecomps}
-                            options={music_options}
-                            value={profileData.favorite_genres}
-                            onChange={(e) => handleInputChange()}
-                            placeholder={"Select your favorite genres"}
-                        />
+                        <div className="music-select">
+                            <Select
+                                components={makeAnimated()}
+                                options={music_options}
+                                value={profileData.favorite_genres.map((genre) => music_options.find((opt) => opt.value === genre))}
+                                onChange={(selectedOptions) => {
+                                    const selectedGenres = selectedOptions.map((option) => option.value);
+                                    handleInputChange('favorite_genres', selectedGenres);
+                                }}
+                                placeholder="Select your favorite genres"
+                               isMulti
+                           />
+                       </div>
                     </div>
                 )
             case 8:
@@ -421,8 +369,20 @@ export default function ProfilePage() {
         return (
             <div className="profile-view">
                 <h1>{profileData.firstname}</h1>
-                <h2> Age: {profileData.age}</h2>
+                <div className = "basic-info">
+                    <h2> Age: {profileData.age}</h2>
+                    <h2> Relationship Goals: {profileData.relationship_goals}</h2>
+                    <h2> Gender: {profileData.gender}</h2>
+                    <h2> Sexual Orientation: {profileData.sexual_orientation}</h2>
+                    <h2> Birthday: {profileData.birthday}</h2>
+                </div>
+                <div className="music-section">
+                    <h2> Favorite Genres: {profileData.favorite_genres}</h2>
+                    <h2> Favorite Artists: {profileData.favorite_artists}</h2>
+                {/*    album cover pictures maybe?*/}
+                </div>
 
+                {/*Will also add pictures */}
 
                 <button onClick={() => setIsEditing(true)}>Edit Profile</button>
             </div>
