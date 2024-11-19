@@ -235,13 +235,14 @@ async function createProfile(_lc_uname) {
     newProfile._lc_uname = _lc_uname;
     newProfile.pref_name = null;
     newProfile.age = null;
-    newProfile.prompt_one = null;
-    newProfile.prompt_two = null;
-    newProfile.prompt_three = null;
-    newProfile.answer_one = null;
-    newProfile.answer_two = null;
-    newProfile.answer_three = null;
-    newProfile.profile_pic = null;
+    newProfile.birthday = null;
+    newProfile.gender = null;
+    newProfile.sexual_orientation = null;
+    newProfile.gender_preference = [];
+    newProfile.relationship_goals = null;
+    newProfile.favorite_genres = [];
+    newProfile.favorite_artists = [];
+    newProfile.photos = [];
     await newProfile.save();
     return newProfile;
 }
@@ -273,12 +274,14 @@ const editProfile = async(req, res, _) => {
     //theres gotta be a cleaner way of doing this
     profile.pref_name = req.body.pref_name;
     profile.age = req.body.age;
-    profile.prompt_one = req.body.prompt_one;
-    profile.prompt_two = req.body.prompt_two;
-    profile.prompt_three = req.body.prompt_three;
-    profile.answer_one = req.body.response_one;
-    profile.answer_two = req.body.response_two;
-    profile.answer_three = req.body.response_three;
+    profile.birthday = req.body.birthday;
+    profile.gender = req.body.gender;
+    profile.sexual_orientation = req.body.sexual_orientation;
+    profile.gender_preference = req.body.gender_preference;
+    profile.relationship_goals = req.body.relationship_goals;
+    profile.favorite_genres = req.body.favorite_genres;
+    profile.favorite_artists = req.body.favorite_artists;
+    profile.photos = req.body.photos;
     /*
     req.body.profile_pic is this {
         data: "contentType + base64 image data"

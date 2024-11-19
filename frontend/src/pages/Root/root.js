@@ -1,17 +1,17 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, Routes, Route } from "react-router-dom";
 import './root.css';
 import React from 'react';
+import HomePage from '../Home/home';
+import ProfilePage from '../Profile/profile';
 import { useAuth } from '../Login/AuthProvider';
 
 export function RootPage(){
     const { isLoggedIn } = useAuth();
-
     return (
         <>
             <div className='nav-bar'>
                 <div className='app-name'>
-                    <Link className="app-name-heart" to="/">Heart</Link>
-                    <Link className="app-name-beatz" to="/">Beatz</Link>
+                    <img src = '/Heartbeatz-name.png' alt = "HeartBeatz"/>
                 </div>
                 <div className='nav-bar-page-links'>
                     {isLoggedIn ? (
@@ -31,6 +31,17 @@ export function RootPage(){
             <Outlet/>
         </>
     );}
+//
+// export default function AppRoutes(){
+//     return (
+//         <Routes>
+//             <Route path="/" element={<RootPage />}>
+//                 <Route path="home" element={<HomePage />} />
+//                 <Route path="profile" element={<ProfilePage />} />
+//             </Route>
+//         </Routes>
+//     );
+// }
 
 export function AboutPage() {
     return (

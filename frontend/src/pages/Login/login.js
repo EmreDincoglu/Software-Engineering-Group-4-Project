@@ -89,7 +89,7 @@ function withAuth(Component) {
           <div className="forgot-password">
             <label>
               <input type="checkbox" field="show_password" onChange={this.checkboxFieldChangeHandler}/> 
-              Show Password
+                Show Password
             </label>
             <text>Forgot Password</text>
           </div>
