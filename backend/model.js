@@ -72,13 +72,16 @@ const profileSchema = new mongoose.Schema({
     user_id: {type: mongoose.ObjectId, required: true},
     pref_name: String,
     age: Number,
-    prompt_one: String,
-    prompt_two: String,
-    prompt_three: String,
-    answer_one: String,
-    answer_two: String,
-    answer_three: String,
+    birthday: Date,
+    gender: String,
+    sexual_orientation: String,
+    gender_preference: String,
+    relationship_goals: String,
+    favorite_genres: [String],
+    favorite_artists: [String],
+    photos: [imageSchema],
     profile_pic: imageSchema
+
 });
 
 const postSchema = new mongoose.Schema({

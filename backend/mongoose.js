@@ -260,7 +260,6 @@ const getProfile = async(req, res, _) => {
     (this allows us to get null data from a profile, for instance if someone hasnt edited their profile but we know their user
     exists, then it will just send back an empty profile of data that will be filled in eventually)
     */
-    console.log(user._id);
     const otherUser = await model.User.findById(req.body.user_id);
     if (!otherUser) {res.json({success: false, invalid_user: true}); return;}
     //checks to see if user is blocked, if so will not send profile data
