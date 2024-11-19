@@ -75,7 +75,7 @@ const profileSchema = new mongoose.Schema({
     birthday: Date,
     gender: String,
     sexual_orientation: String,
-    gender_preference: String,
+    gender_preference: [String],
     relationship_goals: String,
     favorite_genres: [String],
     favorite_artists: [String],
