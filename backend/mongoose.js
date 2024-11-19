@@ -194,6 +194,8 @@ const sendMessage = async (req, res, _) => {
     // ensure recipient does actually exist
     const recipient = await model.User.findById(req.body.recipient_id.toString());
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
+    //check if users have blocked one another
+    if(await checkBlocked(user._id, recipient._id)) {res.json({success: false, blocked: true}); return;}
     // get/create model for user->recipient message database
     let messageCollectionName;
     if (user._id < recipient._id) {messageCollectionName = user._id.toString() + ":" + recipient._id.toString();}
@@ -217,6 +219,8 @@ const getMessages = async (req, res, _) => {
     // ensure recipient does actually exist
     const recipient = await model.User.findById(req.body.recipient_id);
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
+    //check if users have blocked one another
+    if(await checkBlocked(user._id, recipient._id)) {res.json({success: false, blocked: true}); return;}
     // get/create model for user->recipient message database
     let messageCollectionName;
     if (user._id < recipient._id) {messageCollectionName = user._id.toString() + ":" + recipient._id.toString();}
@@ -228,11 +232,11 @@ const getMessages = async (req, res, _) => {
     res.json(msgArr);
 }
 
-async function createProfile(_lc_uname) {
+async function createProfile(user_id) {
     //sets everything as null for the time being, this is under the assumption that the user exists but they have
     //yet to create their profile
     const newProfile = new model.Profile();
-    newProfile._lc_uname = _lc_uname;
+    newProfile.user_id = user_id;
     newProfile.pref_name = null;
     newProfile.age = null;
     newProfile.birthday = null;
@@ -256,10 +260,13 @@ const getProfile = async(req, res, _) => {
     (this allows us to get null data from a profile, for instance if someone hasnt edited their profile but we know their user
     exists, then it will just send back an empty profile of data that will be filled in eventually)
     */
-    if (!await model.User.findOne({_lc_uname: req.body.username.toLowerCase()}))
-    {res.json({success: false, invalid_user: true})}
-    let profile = await model.Profile.findOne({_lc_uname: req.body.username.toLowerCase()});
-    if (!profile) {profile = await createProfile(req.body.username);}
+    console.log(user._id);
+    const otherUser = await model.User.findById(req.body.user_id);
+    if (!otherUser) {res.json({success: false, invalid_user: true}); return;}
+    //checks to see if user is blocked, if so will not send profile data
+    if (await checkBlocked(user._id, otherUser._id)) {res.json({success: false, blocked: true}); return;}
+    let profile = await model.Profile.findOne({user_id: req.body.user_id});
+    if (!profile) {profile = await createProfile(req.body.user_id);}
     res.json(profile);
 }
 
@@ -267,10 +274,9 @@ const editProfile = async(req, res, _) => {
     //auth session
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
-    console.log(user);
     //finds profile, if it doesn't exist it makes one
-    let profile = await model.Profile.findOne({_lc_uname: user._lc_uname});
-    if (!profile) {profile = await createProfile(user._lc_uname)}
+    let profile = await model.Profile.findOne({user_id: user._id});
+    if (!profile) {profile = await createProfile(user._id)}
     //theres gotta be a cleaner way of doing this
     profile.pref_name = req.body.pref_name;
     profile.age = req.body.age;
@@ -321,6 +327,15 @@ async function findPost(postID) {
     return post;
 }
 
+async function checkBlocked(userID, otherUserID) {
+    //checks to see if person 1 blocked person 2 and vise versa, will return true if at least one person blocked another
+    const firstColl = model.userBlockedDB.model(userID.toString(), model.userPointer);
+    const secondColl = model.userBlockedDB.model(otherUserID.toString(), model.userPointer);
+    const firstCheck = await firstColl.findOne({user_id: otherUserID});
+    const secondCheck = await secondColl.findOne({user_id: userID});
+    return (firstCheck != null || secondCheck != null);
+}
+
 const likePost = async(req, res, _) => {
     //auth session
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
@@ -350,11 +365,13 @@ const likePost = async(req, res, _) => {
 }
 
 const blockUser = async(req, res , _) => {
+    //auth sess
     const user = await get_user(req.cookies.session_id, req.cookies.user_id);
     if (!user) {res.json({success: false, invalid_session: true}); return;}
+    //checks to see if the user being blocked exists
     const blockedUser = await model.User.findById(req.body.user_id);
     if (!blockedUser) {res.json({success: false, invalid_user: true}); return;}
-    const blockedCollection = model.userBlockedDB.model(user._id.toString(), model.blockedPointer);
+    const blockedCollection = model.userBlockedDB.model(user._id.toString(), model.userPointer);
     const foundUser = await blockedCollection.findOne({user_id: req.body.user_id});
     if (!foundUser) {
         const newBlock = new blockedCollection({
@@ -366,6 +383,31 @@ const blockUser = async(req, res , _) => {
     else {
         await blockedCollection.deleteOne({user_id: req.body.user_id});
         res.json({success: true, unblocked: true, name: blockedUser.username});
+    }
+}
+
+const followUser = async(req, res, _) => {
+    //auth sess
+    const user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+    //find user and see if they exists
+    const followedUser = await model.User.findById(req.body.user_id);
+    if (!followedUser) {res.json({success: false, invalid_user: true}); return;}
+    //make sure one doesnt block the other
+    if(await checkBlocked(user._id, followedUser._id)) {res.json({success: false, blocked: true}); return;}
+    //creates collection to add or remove the follow
+    const followCollection = model.userFollowDB.model(user._id.toString(), model.userPointer);
+    const foundUser = await followCollection.findOne({user_id: req.body.user_id});
+    if (!foundUser) {
+        const newFollow = new followCollection({
+            user_id: followedUser._id
+        })
+        await newFollow.save();
+        res.json({success: true, followed: true, name: followedUser.username});
+    }
+    else {
+        await followCollection.deleteOne({user_id: req.body.user_id});
+        res.json({success: true, unfollowed: true, name: followedUser.username});
     }
 }
 /*
@@ -387,5 +429,6 @@ module.exports = {
     getProfile: getProfile,
     createPost: createPost,
     likePost: likePost,
-    blockUser: blockUser
+    blockUser: blockUser,
+    followUser: followUser,
 };
