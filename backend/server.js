@@ -38,7 +38,9 @@ app.post('/blockUser', mongo.blockUser);
 
 app.delete('/deleteUser', mongo.deleteUser);
 
+app.put('/endSession', mongo.endSession);
 app.put('/editProfile', mongo.editProfile);
+
 
 /*
     App Start:
