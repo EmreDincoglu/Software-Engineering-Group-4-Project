@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
     first_name: String,
     last_name: String,
     age: Number,
+    birthday: Date,
     spotify_token: String,
     session_id: Number,
     session_date: Date
@@ -126,3 +127,4 @@ module.exports = {
     likesPointer: userLikedPointer,
     userPointer: userPointer
 };
+

@@ -26,22 +26,10 @@
     border-color: black;
     border-width: 1px;
 }
-.app-name .app-name-heart{
-    color:hotpink;
-    justify-self: right;
-    font-weight: 900;
+.app-name img{
+    height:60px;
+    width: auto;
 }
-.app-name .app-name-beatz{
-    color: limegreen;
-    justify-self: left;
-    font-weight: 900;
-}
-.app-name a{
-    text-decoration: none;
-    font-size: 100%;
-    font-weight: bold;
-}
-
 
 .nav-bar .nav-bar-page-links{
     width: 100%;
@@ -92,7 +80,7 @@
     color: white;
     font-size: 3em;
     transform: translate(-50%, 50%);
-    top: 50%;
+    top: 30%;
     left: 50%;
     text-align: center;
 }
@@ -160,3 +148,4 @@
         background-position: 0 100%;
     }
 }
+

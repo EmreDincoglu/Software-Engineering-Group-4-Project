@@ -119,6 +119,68 @@ const uploadSpotifyAuth = async (req, res) => {
     res.json({success: true});
 }
 
+// Updates attributes of a user account. 
+// Returns the updated user if successful, and re_authSpotify if spotify needs to be reauthenticated
+// Requires username, email, password, first_name, last_name, age
+const updateUser = async (req, res) => {
+    user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+     
+    let resp_data = {
+        valid_username: false,
+        valid_email: false,
+    };
+    // used to verify the updated username and email
+    let updatedUser_data = {
+        // changing username may cause issues with things using it as constant (ie messaging)
+        // username: req.body.new_username,
+        username: "temp",
+        _lc_uname: req.body.new_username.toLowerCase(),
+        password: req.body.new_password,
+        email: req.body.new_email.toLowerCase()
+    };
+
+    const updatedUser = new model.User(updatedUser_data);
+
+    /*
+    // verify new username and email
+    if (updatedUser._lc_uname == user._lc_uname || 
+        await updatedUser.checkUniqueUsername()) {
+            resp_data.valid_username = true;
+    }
+    */
+    resp_data.valid_username = true;
+        // may need to verify new email with extra steps
+    if (updatedUser.email == user.email ||
+        await updatedUser.checkUniqueEmail()) {
+            resp_data.valid_email = true;
+        }
+    resp_data.success = resp_data.valid_username && resp_data.valid_email;
+    if (!resp_data.success) {res.send(resp_data); return;}
+    
+    // if successful (ie. valid new_username and new_email) then update the user
+    // user.username = updatedUser.username;
+    user._lc_uname = updatedUser._lc_uname;
+    user.password = updatedUser.password;
+    user.email = updatedUser.email;
+    if (req.body.new_first_name) {
+        user.first_name = req.body.new_first_name;
+    }
+    if (req.body.new_last_name) {
+        user.last_name = req.body.new_last_name;
+    }
+    if (req.body.new_age) {
+        user.age = req.body.new_age;
+    }
+
+    // update the user
+    await user.save();
+
+    //  Don't know if updating session/user_id is needed
+
+    res.send(resp_data);
+}
+
 /* Sends a message between two users
 Input: {
     recipient: ObjectId (_id property of recipient user),
@@ -177,13 +239,14 @@ async function createProfile(user_id) {
     newProfile.user_id = user_id;
     newProfile.pref_name = null;
     newProfile.age = null;
-    newProfile.prompt_one = null;
-    newProfile.prompt_two = null;
-    newProfile.prompt_three = null;
-    newProfile.answer_one = null;
-    newProfile.answer_two = null;
-    newProfile.answer_three = null;
-    newProfile.profile_pic = null;
+    newProfile.birthday = null;
+    newProfile.gender = null;
+    newProfile.sexual_orientation = null;
+    newProfile.gender_preference = [];
+    newProfile.relationship_goals = null;
+    newProfile.favorite_genres = [];
+    newProfile.favorite_artists = [];
+    newProfile.photos = [];
     await newProfile.save();
     return newProfile;
 }
@@ -217,12 +280,14 @@ const editProfile = async(req, res, _) => {
     //theres gotta be a cleaner way of doing this
     profile.pref_name = req.body.pref_name;
     profile.age = req.body.age;
-    profile.prompt_one = req.body.prompt_one;
-    profile.prompt_two = req.body.prompt_two;
-    profile.prompt_three = req.body.prompt_three;
-    profile.answer_one = req.body.response_one;
-    profile.answer_two = req.body.response_two;
-    profile.answer_three = req.body.response_three;
+    profile.birthday = req.body.birthday;
+    profile.gender = req.body.gender;
+    profile.sexual_orientation = req.body.sexual_orientation;
+    profile.gender_preference = req.body.gender_preference;
+    profile.relationship_goals = req.body.relationship_goals;
+    profile.favorite_genres = req.body.favorite_genres;
+    profile.favorite_artists = req.body.favorite_artists;
+    profile.photos = req.body.photos;
     /*
     req.body.profile_pic is this {
         data: "contentType + base64 image data"
@@ -358,6 +423,7 @@ module.exports = {
     sendMessage: sendMessage,
     getUserData: getUserData,
     getMessages: getMessages,
+    updateUser: updateUser
     deleteUser: deleteUser,
     editProfile: editProfile,
     getProfile: getProfile,
