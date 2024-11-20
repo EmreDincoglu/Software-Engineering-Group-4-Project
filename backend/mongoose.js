@@ -7,6 +7,7 @@ const querystring = require("querystring");
 const CLIENTID = "eff8ab475b084ac6b33354f145e05a36";
 const CLIENT_SECRET = "8cbad3aeb88f42b1baa8eb03ad7abd12";
 const REDIRECTURI = "http://localhost:3000/spotifyAuthCallback";
+
 /*
     Request Methods:
 */
@@ -20,9 +21,12 @@ const createUser = async (req, res) => {
     const createdUser = new model.User(req.body);
     // create return object and check for email and username uniqueness
     let resp_data = {};
+    resp_data.valid_username = createdUser.checkValidUsername();
+    resp_data.valid_password = createdUser.checkValidPassword();
     resp_data.duplicate_email = !(await createdUser.checkUniqueEmail());
     resp_data.duplicate_username = !(await createdUser.checkUniqueUsername());
-    resp_data.success = !resp_data.duplicate_email && !resp_data.duplicate_username;
+    resp_data.success = !resp_data.duplicate_email && !resp_data.duplicate_username && 
+                        !resp_data.valid_username && !resp_data.valid_password;
     if (!resp_data.success) {res.send(resp_data); return;}
     // put the user into the database. technically not required since generateSession also saves the user
     await createdUser.save();
@@ -64,6 +68,17 @@ const createSession = async (req, res) => {
     res.cookie('session_id', user.session_id);
     res.cookie('user_id', user.id);
     res.json({success: true});
+}
+
+const endSession = async (req, res) => {
+    // validate session first
+    let user = await get_user(req.cookies.session_id, req.cookies.user_id);
+    if (!user) {res.json({success: false, invalid_session: true}); return;}
+
+    user.endSession();
+    res.cookie('session_id', null);
+    res.cookie('user_id', null);
+    res.send({success: true});
 }
 
 // returns the user, authenticating the session as well
@@ -416,6 +431,7 @@ const followUser = async(req, res, _) => {
 module.exports = {
     createUser: createUser,
     createSession: createSession,
+    endSession: endSession,
     authSession: authSession,
     authSpotify: authSpotify,
     uploadSpotifyAuth: uploadSpotifyAuth,

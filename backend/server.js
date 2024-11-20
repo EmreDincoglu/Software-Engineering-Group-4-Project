@@ -39,8 +39,8 @@ app.post('/followUser', mongo.followUser);
 
 app.delete('/deleteUser', mongo.deleteUser);
 
+app.put('/endSession', mongo.endSession);
 app.put('/editProfile', mongo.editProfile);
-
 app.put('/updateUser', mongo.updateUser)
 
 /*
