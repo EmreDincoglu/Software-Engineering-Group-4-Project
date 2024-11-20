@@ -6,6 +6,8 @@ import './index.css';
 import {LoginPage, RootPage, AboutPage, HomePage, AccountPage, SpotifyCallbackPage} from './pages/default';
 
 export default function App() {return (
+    <React.StrictMode>
+    <AuthProvider>
     <BrowserRouter>
         <Routes>
             <Route path="/" element={<RootPage/>}>
@@ -17,6 +19,8 @@ export default function App() {return (
             <Route path="/spotifyAuthCallback" element={<SpotifyCallbackPage/>}/>
         </Routes>
     </BrowserRouter>
+    </AuthProvider>
+    </React.StrictMode>
 );}
 
 const container = document.getElementById('root');
