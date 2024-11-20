@@ -1,43 +1,25 @@
 import React from "react";
-import {Navigate} from "react-router-dom";
 import "./home.css";
-import { getUser } from "../../lib/backend";
+import "../../lib/auth_locked";
+import {withUserAuth} from "../../lib/auth_locked";
 
-export default class HomePage extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            user: null,
-            redirectToLogin: false
-        };
-    }
-
-    componentDidMount() {
-        getUser().then(result => {
-            if (!result.success) {
-                this.setState({redirectToLogin: true});
-            }else {
-                this.setState({user: result.user});
-            }
-        });
-    }
-
+class HomePage extends React.Component {
     render() {
-        if (this.state.redirectToLogin) {
-            return <Navigate to='/login'/>;
+        if (this.props.loading) {
+            return (<>
+                <div className = "grid-background"></div>
+                <h1>Loading...</h1>
+            </>);
         }
-        if (this.state.user) {
+        if (this.props.user!=null) {
             return (
                 <div className="grid-background">
                     <div className="title">
-                        <h1> Welcome {this.state.user.username}!</h1>
+                        <h1> Welcome {this.props.user.username}!</h1>
                     </div>
                 </div>
             );
         }
-        return (<>
-            <div className = "grid-background"></div>
-            <h1>Loading...</h1>
-        </>);
     }
 }
+export default withUserAuth(HomePage);

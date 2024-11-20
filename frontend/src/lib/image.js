@@ -37,6 +37,7 @@ export default class ImageElement extends React.Component {
     }
     const uploaded_image = await jimpImage.getBase64("image/png");
     this.setState({data: uploaded_image, data_changed: true});
+    if (this.props.onImageUpload != null) {await this.props.onImageUpload(uploaded_image);}
   }
 
   render() {
