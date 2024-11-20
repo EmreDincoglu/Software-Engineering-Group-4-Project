@@ -11,7 +11,16 @@ const userFollows = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6
 /*
     Helper Functions:
 */
-const StringValidationFunctions = {
+const StringValidationNamespace = {
+
+    alpha_lower: "abcdefghijklmnopqrstuvwxyz",
+    alpha_upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    numeric: "0123456789",
+    
+    alphanumeric: StringValidationNamespace.alpha_lower + 
+                  StringValidationNamespace.alpha_upper + 
+                  StringValidationNamespace.numeric,
+
     character_isAlpha: function (char) {
         if (('a' <= char <= 'z') ||
             ('A' <= char <= 'Z')) {
@@ -27,32 +36,26 @@ const StringValidationFunctions = {
     // check string for invalid characters
     checkCharacters_invalid: function (string, invalid_characters) {
         for (let i = 0; i < invalid_characters.length(); i++) {
-            if (string.includes(invalid_characters[i])) { return false; }
+            if (String(string).includes(invalid_characters[i])) { return false; }
         }
         return true;
     },
     checkCharacters_valid: function (string, valid_characters) {
         for (let i = 0; i < string.length(); i++) {
-            if (!valid_characters.includes(string[i])) { return false; }
-        }
-        return true;
-    },
-    checkCharacters_againstFunction: function (string, validation_function) {
-        for (let i = 0; i < string.length(); i++) {
-            if (!validation_function(string[i])) { return false; }
+            if (!String(valid_characters).includes(string[i])) { return false; }
         }
         return true;
     },
 
     // check characters in string
     checkCharacters_hasOne: function (string, char) {
-        if (!string.includes(char)) { return false; }
+        if (!String(string).includes(char)) { return false; }
         return true;
     },
     checkCharacters_hasOneOfMany: function (string, characters) {
         let has_one = false;
         for (let i = 0; i < characters.length(); i++) {
-            if (StringValidationFunctions.checkCharacters_hasOne(string, characters[i])) { 
+            if (StringValidationNamespace.checkCharacters_hasOne(string, characters[i])) { 
                 has_one = true; 
             }
         }
@@ -60,7 +63,7 @@ const StringValidationFunctions = {
     },
     checkCharacters_hasAll: function (string, characters) {
         for (let i = 0; i < characters.length(); i++) {
-            if (!StringValidationFunctions.checkCharacters_hasOne(string, characters[i])) { 
+            if (!StringValidationNamespace.checkCharacters_hasOne(string, characters[i])) { 
                 return false; 
             }
         }
@@ -93,44 +96,29 @@ userSchema.methods = {
     },
     checkValidUsername: function() {
         const username_specialValidCharacters = ['+', '-', '_', '~', '.'];
-        return StringValidationFunctions.checkCharacters_againstFunction(this.username, (char) => {
-            // is alpha-numeric
-            if(StringValidationFunctions.character_isAlpha(char) || 
-               StringValidationFunctions.character_isNum(char)) { 
-                return true; 
-            }
-            // is special character
-            if (StringValidationFunctions.checkCharacters_valid(char, username_specialValidCharacters)) { 
-                return true;
-            }
-            return false;
-        });
+        return StringValidationNamespace.checkCharacters_valid(this.username, 
+            StringValidationNamespace.alphanumeric + 
+            username_specialValidCharacters
+        );
     },
     checkValidPassword: function() {
         const password_specialValidCharacters = ['+', '-', '_', '=', '~', '.', '*', '!', '#'];
+
         return (this.password.length() >= 8) &&
-            (StringValidationFunctions.checkCharacters_againstFunction(this.password, (char) => {
-                // is alpha-numeric
-                if(StringValidationFunctions.character_isAlpha(char) || 
-                   StringValidationFunctions.character_isNum(char)) { 
-                    return true;
-                }
-                // is special character
-                if (StringValidationFunctions.checkCharacters_valid(char, password_specialValidCharacters)) { 
-                    return true;
-                }
-                return false;
-            })) && 
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
-                'abcdefghijklmnopqrstuvwxyz')
+            StringValidationNamespace.checkCharacters_valid(this.password, 
+                StringValidationNamespace.alphanumeric + 
+                password_specialValidCharacters
             ) && 
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+            (StringValidationNamespace.checkCharacters_hasOneOfMany(this.password, 
+                StringValidationNamespace.alpha_lower)
+            ) && 
+            (StringValidationNamespace.checkCharacters_hasOneOfMany(this.password, 
+                StringValidationNamespace.alpha_upper)
             ) &&
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
-                '0123456789')
+            (StringValidationNamespace.checkCharacters_hasOneOfMany(this.password, 
+                StringValidationNamespace.numeric)
             ) && 
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
+            (StringValidationNamespace.checkCharacters_hasOneOfMany(this.password, 
                 password_specialValidCharacters)
             );
     },
