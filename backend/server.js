@@ -35,12 +35,13 @@ app.post('/createPost', mongo.createPost);
 //likePost and block user are like a switch, if you call likePost and its already liked it will unlike it and vise versa
 app.post('/likePost', mongo.likePost);
 app.post('/blockUser', mongo.blockUser);
+app.post('/followUser', mongo.followUser);
 
 app.delete('/deleteUser', mongo.deleteUser);
 
 app.put('/endSession', mongo.endSession);
 app.put('/editProfile', mongo.editProfile);
-
+app.put('/updateUser', mongo.updateUser)
 
 /*
     App Start:

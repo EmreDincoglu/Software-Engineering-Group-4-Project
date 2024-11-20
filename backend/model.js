@@ -6,6 +6,7 @@ const messageDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5
 const userPosts = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userPosts?retryWrites=true&w=majority&appName=Cluster0');
 const userLiked = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userLiked?retryWrites=true&w=majority&appName=Cluster0');
 const userBlocked = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userBlocked?retryWrites=true&w=majority&appName=Cluster0');
+const userFollows = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userFriends?retryWrites=true&w=majority&appName=Cluster0');
 
 /*
     Helper Functions:
@@ -71,10 +72,12 @@ const userSchema = new mongoose.Schema({
     first_name: String,
     last_name: String,
     age: Number,
+    birthday: Date,
     spotify_token: String,
     session_id: Number,
     session_date: Date
 });
+
 userSchema.methods = {
     checkUniqueUsername: async function() {
         if (await userDatabase.model('UserAccount').findOne({_lc_uname: this._lc_uname})) {return false;}
@@ -169,16 +172,19 @@ const messageSchema = new mongoose.Schema({
 });
 
 const profileSchema = new mongoose.Schema({
-    _lc_uname: {type: String, required: true},
+    user_id: {type: mongoose.ObjectId, required: true},
     pref_name: String,
     age: Number,
-    prompt_one: String,
-    prompt_two: String,
-    prompt_three: String,
-    answer_one: String,
-    answer_two: String,
-    answer_three: String,
+    birthday: Date,
+    gender: String,
+    sexual_orientation: String,
+    gender_preference: [String],
+    relationship_goals: String,
+    favorite_genres: [String],
+    favorite_artists: [String],
+    photos: [imageSchema],
     profile_pic: imageSchema
+
 });
 
 const postSchema = new mongoose.Schema({
@@ -189,7 +195,8 @@ const postSchema = new mongoose.Schema({
     song_id: String,
     post_image: imageSchema
 });
-
+//I just realized that these two schemas are duplicates and I had no reason in making both of them, I could have reused them
+//for this project since were almost do
 const userPostPointer = new mongoose.Schema({
     post_id: {type: mongoose.ObjectId, required: true}
 })
@@ -198,9 +205,10 @@ const userLikedPointer = new mongoose.Schema({
     post_id: {type: mongoose.ObjectId, required: true}
 })
 
-const userBlockedPointer = new mongoose.Schema({
+const userPointer = new mongoose.Schema({
     user_id: {type: mongoose.ObjectId, required: true}
 })
+
 
 const ProfileModel = userDatabase.model('profileData', profileSchema);
 const UserModel = userDatabase.model('UserAccount', userSchema);
@@ -217,10 +225,12 @@ module.exports = {
     userPostDB: userPosts,
     userLikedDB: userLiked,
     userBlockedDB: userBlocked,
+    userFollowDB: userFollows,
 
     //schemas
     PostPointer: userPostPointer,
     messageSchema: messageSchema,
     likesPointer: userLikedPointer,
-    blockedPointer: userBlockedPointer
+    userPointer: userPointer
 };
+
