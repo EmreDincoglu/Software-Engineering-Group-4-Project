@@ -27,38 +27,42 @@ const StringValidationFunctions = {
     // check string for invalid characters
     checkCharacters_invalid: function (string, invalid_characters) {
         for (let i = 0; i < invalid_characters.length(); i++) {
-            if (string.includes(invalid_characters[i])) return false;
+            if (string.includes(invalid_characters[i])) { return false; }
         }
         return true;
     },
     checkCharacters_valid: function (string, valid_characters) {
         for (let i = 0; i < string.length(); i++) {
-            if (!valid_characters.includes(string[i])) return false;
+            if (!valid_characters.includes(string[i])) { return false; }
         }
         return true;
     },
     checkCharacters_againstFunction: function (string, validation_function) {
         for (let i = 0; i < string.length(); i++) {
-            if (!validation_function(string[i])) return false;
+            if (!validation_function(string[i])) { return false; }
         }
         return true;
     },
 
     // check characters in string
     checkCharacters_hasOne: function (string, char) {
-        if (!string.includes(char)) return false;
+        if (!string.includes(char)) { return false; }
         return true;
     },
     checkCharacters_hasOneOfMany: function (string, characters) {
         let has_one = false;
         for (let i = 0; i < characters.length(); i++) {
-            if (checkCharacters_hasOne(string, characters[i])) has_one = true;
+            if (StringValidationFunctions.checkCharacters_hasOne(string, characters[i])) { 
+                has_one = true; 
+            }
         }
         return has_one;
     },
     checkCharacters_hasAll: function (string, characters) {
         for (let i = 0; i < characters.length(); i++) {
-            if (!checkCharacters_hasOne(string, characters[i])) return false;
+            if (!StringValidationFunctions.checkCharacters_hasOne(string, characters[i])) { 
+                return false; 
+            }
         }
         return true;
     },
@@ -117,16 +121,16 @@ userSchema.methods = {
                 }
                 return false;
             })) && 
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(password, 
+            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
                 'abcdefghijklmnopqrstuvwxyz')
             ) && 
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(password, 
+            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
             ) &&
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(password, 
+            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
                 '0123456789')
             ) && 
-            (StringValidationFunctions.checkCharacters_hasOneOfMany(password, 
+            (StringValidationFunctions.checkCharacters_hasOneOfMany(this.password, 
                 password_specialValidCharacters)
             );
     },
