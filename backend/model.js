@@ -35,21 +35,33 @@ const StringValidationNamespace = {
 
     // check string for invalid characters
     checkCharacters_invalid: function (string, invalid_characters) {
+        // appeasing our Codacy gods
+        if (typeof string !== "string" || !Array.isArray(string)) { return false; }
+        if (typeof invalid_characters !== "string" || !Array.isArray(invalid_characters)) { return false; }
+
         for (let i = 0; i < invalid_characters.length(); i++) {
-            if (String(string).includes(invalid_characters[i])) { return false; }
+            if (string.includes(invalid_characters[i])) { return false; }
         }
         return true;
     },
     checkCharacters_valid: function (string, valid_characters) {
+       // appeasing our Codacy gods
+       if (typeof string !== "string" || !Array.isArray(string)) { return false; }
+       if (typeof valid_characters !== "string" || !Array.isArray(valid_characters)) { return false; }
+
         for (let i = 0; i < string.length(); i++) {
-            if (!String(valid_characters).includes(string[i])) { return false; }
+            if (!valid_characters.includes(string[i])) { return false; }
         }
         return true;
     },
 
     // check characters in string
     checkCharacters_hasOne: function (string, char) {
-        if (!String(string).includes(char)) { return false; }
+       // appeasing our Codacy gods
+       if (typeof string !== "string" || !Array.isArray(string)) { return false; }
+       if (typeof char !== "string" || !Array.isArray(char)) { return false; }
+
+        if (!string.includes(char)) { return false; }
         return true;
     },
     checkCharacters_hasOneOfMany: function (string, characters) {
@@ -62,6 +74,10 @@ const StringValidationNamespace = {
         return has_one;
     },
     checkCharacters_hasAll: function (string, characters) {
+        // appeasing our Codacy gods
+       if (typeof string !== "string" || !Array.isArray(string)) { return false; }
+       if (typeof characters !== "string" || !Array.isArray(characters)) { return false; }
+
         for (let i = 0; i < characters.length(); i++) {
             if (!StringValidationNamespace.checkCharacters_hasOne(string, characters[i])) { 
                 return false; 
