@@ -100,7 +100,7 @@ userSchema.methods = {
         });
     },
     checkValidPassword: function() {
-        const password_specialValidCharacters = ['+', '-', '_', '=', '~', '.', '*', '!', '$', '#', '@', '%'];
+        const password_specialValidCharacters = ['+', '-', '_', '=', '~', '.', '*', '!', '#'];
         return (this.password.length() >= 8) &&
             (StringValidationFunctions.checkCharacters_againstFunction(this.password, (char) => {
                 // is alpha-numeric
