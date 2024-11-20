@@ -2,9 +2,13 @@ import React from "react";
 import {Navigate} from "react-router-dom";
 import { getUser } from "./backend";
 
-// Wraps a component to have search params from the url
+// wraps a component to have user data as a prop.
 export const withUserAuth = WrappedComponent => props => {
     return <AuthLockedPage child={WrappedComponent}/>;
+};
+// wraps a component to be aware of whether the user is logged in. Doesnt auto redirect to login when not logged in
+export const withUserAwareness = WrappedComponent => props => {
+    return <AuthAwarePage child={WrappedComponent}/>;
 };
 
 class AuthLockedPage extends React.Component {
@@ -36,5 +40,33 @@ class AuthLockedPage extends React.Component {
             return <Navigate to='/login'/>;
         }
         return <this.props.child user={this.state.user} loading={this.state.user==null}/>;
+    }
+}
+
+class AuthAwarePage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            user: null,
+            logged_in: null
+        };
+        this.getUserData = this.getUserData.bind(this);
+    }
+
+    async getUserData(){
+        let result = await getUser();
+        if (result.success) {
+            this.setState({user: result.user, logged_in: true});
+        } else {
+            this.setState({logged_in: false});
+        }
+    }
+
+    componentDidMount() {
+        this.getUserData();
+    }
+
+    render() {
+        return <this.props.child user={this.state.user} loading={this.state.logged_in==null} logged_in={this.state.logged_in}/>;
     }
 }

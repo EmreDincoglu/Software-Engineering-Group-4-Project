@@ -2,7 +2,7 @@ import React from "react";
 import {Jimp} from "jimp";
 import "./image.css";
 
-export default class ImageElement extends React.Component {
+export default class ProfileImageElement extends React.Component {
   constructor(props) {
     super(props);
     this.state = {

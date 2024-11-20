@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { updateSpotifyToken } from "../../lib/backend";
-import { withRouter } from "../../lib/default";
+import { withParams } from "../../lib/default";
 
 class SpotifyCallbackPage extends React.Component {
     constructor(props) {
@@ -43,4 +43,4 @@ class SpotifyCallbackPage extends React.Component {
     }
 }
 
-export default withRouter(SpotifyCallbackPage);
+export default withParams(SpotifyCallbackPage);
