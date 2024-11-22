@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 
 import {LoginPage, RootPage, AboutPage, HomePage, AccountPage, SpotifyCallbackPage} from './pages/default';
+import { AuthProvider } from './lib/auth';
 
 export default function App() {return (
     <React.StrictMode>
@@ -14,7 +15,7 @@ export default function App() {return (
                 <Route index element={<AboutPage/>} />
                 <Route path="login" element={<LoginPage/>}/>
                 <Route path="home" element={<HomePage/>}/>
-                <Route path="profile" element={<AccountPage/>}/>
+                <Route path="account" element={<AccountPage/>}/>
             </Route>
             <Route path="/spotifyAuthCallback" element={<SpotifyCallbackPage/>}/>
         </Routes>

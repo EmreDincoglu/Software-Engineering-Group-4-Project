@@ -1,8 +1,6 @@
-import './profile.css';
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
-import { useAuth } from '../Login/AuthProvider';
 
 export default function ProfilePage() {
     const { authUser, setProfileComplete, ProfileComplete } = useAuth();

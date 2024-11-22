@@ -1,248 +1,170 @@
-.profile-block {
-    display: flex;
-    flex-direction: column;
-    border: 3px solid lawngreen;
-    border-radius: 20px;
-    padding: 20px;
-    align-content: center;
-    text-align: center;
-    gap: 10px;
-    font-size: 16px;
-}
-
-.profile-block h1 {
-    font-size: 300%;
-    font-weight: bold;
-    text-decoration: underline;
-}
-
-.profile-block .profile-uname-and-icon {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-.profile-uname-and-icon span{
-    display: flex;
-    align-items: center;
-    padding-bottom: 0.125em;
-    font-size: 150%;
-    font-weight: bold;
-}
-.profile-uname-and-icon .image-element{
-    width: 32px;
-}
-
-.profile-block .profile-email{
-    font-size: 125%;
-    font-weight: 500;
-}
-
-.profile-block .profile-name-age{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 125%;
-    font-weight: 500;
-    margin-top: 10px;
-}
-
-.profile-name-age .profile-name{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-}
-
-.profile-box-one{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 800px;
-    margin: 0 auto;
-    border: 3px solid lawngreen;
-    border-radius: 20px;
-    background-color: black;
-    text-align: center;
-    color: white;
-    transform: none;
-    position: relative;
-    z-index: 1;
-    will-change: auto;
-    contain: layout;
-}
-
-.profile-header {
-    display: flex;
-    width: 100%;
-    justify-content: flex-start;
-    align-items: flex-start;
-    transform: none;
-}
-
-.profile-pic-label{
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f0f0;
-    cursor: pointer;
-    margin-right: 20px;
-    transform: none;
-}
-
-.file-input{
-    display:none;
-}
-
-.profile-input{
-    width: 200px;
-}
-
-
-.user-name input {
-    width: 150px;
-    padding: 5px;
-    background: transparent;
-    outline: none;
-    border: 2px solid white;
-    border-radius: 5px;
-    font-size: 12px;
-    margin-bottom: 10px;
-    transform: none;
-}
-
-.age input{
-    width: 80px;
-    padding: 5px;
-    font-size: 14px;
-    margin: 0 10px;
-    border: 2px solid white;
-    border-radius: 5px;
-    background: transparent;
-    transform: none;
-}
-.user-name input::placeholder, .age input::placeholder{
-    color: limegreen;
-    opacity: 0.75;
-}
-.user-name input:focus, .age input:focus{
-    border-color: hotpink;
-}
-
-.optional-prompts {
-    width: 100%;
-    margin-top: 20px;
-    transform: none;
-}
-
-.prompt{
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px;
-    transform: none;
-}
-
-select, textarea {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    font-size: 14px;
-    background: transparent;
-    border: 2px solid white;
-    color: white;
-    border-radius: 5px;
-    outline: none;
-    transform: none;
-    }
-
-
-textarea {
-    height: 50px;
-    resize: none;
-    transform: none;
-}
-
-select {
-    background: black;
-    border-radius: 5px;
-    transform: none;
-}
-
-button{
-    background: lawngreen;
-    padding: 0.5em;
-    color: white;
-    font-size: 125%;
-    display: inline-block;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    margin-top: 1.5em;
-    margin-bottom: 1.5em;
-    justify-content: right;
-}
-button:hover{
-    border: 2px solid white;
-}
-
-.next-button{
-    justify-self: flex-end;
-
-}
-
-
-.photo-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 20px 0;
-}
-
-.photo-box {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.photo-box:hover {
-    border-color: #888;
-}
-
-.photo-preview {
-    width: 100%;
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
+.account-block{
+    font-family: 'Inconsolata';
+    font-size: 100%;
+    width: min-content;
+    margin-left: auto;
+    margin-right: auto;
     height: 100%;
-    object-fit: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: top;
+    margin-top: 3em;
 }
 
-.remove-button {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: lawngreen;
+/*
+    Basic account fields like username email and password
+*/
+
+.account-info{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    width: 100%;
+    min-width: 25em;
+    padding: 1em;
+    border: 1px solid white;
+    border-radius: 1em;
+}
+.account-info .section-title{
+    text-decoration: underline;
+    text-align: center;
+}
+
+/*
+    Css for each editable account field
+*/
+
+.account-field {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 0.3em;
+    background-color: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgb(126, 126, 126);
+    border-radius: 0.3em;
+}
+
+.account-field-label {
+    text-align: right;
+    width: 6em;
+    padding-right: 1em;
+}
+
+.account-field-value {
+    text-align: right;
+    flex: auto;
+}
+span.account-field-value{
+    font-weight: bold;
+}
+input.account-field-value{
+    background: none;
+    color: white;
+    border: 1px solid white;
+    border-radius: 0.3em;
+    padding-right: 0.5em;
+}
+
+.account-field-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+    width: 3em;
+    margin-left: 1em;
+}
+.account-field-buttons button{
+    background: none;
+    font-weight: bold;
     color: white;
     border: none;
+    width: 100%;
+    text-align: center;
+}
+.account-field-buttons button#with-border{
+    border: 1px solid white;
+    border-radius: 1em;
+}
+.account-field-buttons button:hover{
+    background-color: hotpink;
+    border: none;
+    border-radius: 0.5em;
     cursor: pointer;
-    padding: 5px;
-    font-size: 12px;
+}
+
+/*
+    Account Buttons
+*/
+
+.account-buttons{
     display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+}
+.account-buttons button:hover{
+    cursor: pointer;
+}
+.account-buttons .update-profile{
+    background: black;
+    color: lawngreen;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0.25em;
+}
+.account-buttons .logout{
+    background: black;
+    color: hotpink;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0.25em;
+}
+.account-buttons .delete-profile{
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0.25em;
+}
+
+/*
+    Spotify Section
+*/
+.spotify-info{
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 1em;
+    width: 100%;
+    min-width: 25em;
+    padding: 1em;
+    border: 1px solid white;
+    border-radius: 1em;
 }
-
-.remove-button:hover {
+.spotify-info .section-title{
+    text-decoration: underline;
+    text-align: center;
+}
+.spotify-link-button{
+    width: auto;
+    background: lawngreen;
+    color: black;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-weight: bolder;
+    font-size: 110%;
+    padding: 0.25em;
+} 
+.spotify-link-button:hover{
+    cursor: pointer;
     background: hotpink;
+    color: white;
 }
-

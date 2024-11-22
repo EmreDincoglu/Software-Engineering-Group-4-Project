@@ -1,178 +1,163 @@
 import React from "react";
 import "./account.css";
-import default_user from "../../assets/default_user.png";
-import ImageElement from "../../lib/image";
-import { withUserAuth } from "../../lib/auth_locked";
+import {loggedInPage} from "../../lib/auth";
+import {updateUser, logoutUser, deleteUser, authSpotify} from "../../lib/backend";
+import {Navigate} from "react-router-dom";
 
-class AccountPage extends React.Component {
+class AccountField extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
-      profile_image: null,
-      username: null,
-      email: null,
-      password: null,
-      first_name: null,
-      last_name: null,
-      age: null,
-      bio: null,
-      updating_account: false,
-      show_password: false
+      updated_value: null,
+      updating: false
     };
-    this.handleAccountFieldChange = this.handleAccountFieldChange.bind(this);
-    this.setAccountIcon = this.setAccountIcon.bind(this);
-    this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
-    this.startUpdating = this.startUpdating.bind(this);
-    this.stopUpdating = this.stopUpdating.bind(this);
-    this.finishUpdating = this.finishUpdating.bind(this);
+    this.updateValue = this.updateValue.bind(this);
+    this.startUpdate = this.startUpdate.bind(this);
+    this.cancelUpdate = this.cancelUpdate.bind(this);
+    this.finishUpdate = this.finishUpdate.bind(this);
   }
-
-  handleAccountFieldChange(event) {
-    this.setState({[event.target.attributes.field.nodeValue]: event.target.value});
+  updateValue(event){
+    this.setState({updated_value: event.target.value});
   }
-
-  setAccountIcon(data) {
-    this.setState({profile_image: data});
-  }
-
-  togglePasswordVisibility(event) {
-    this.setState({show_password: event.target.checked});
-  }
-
-  startUpdating() {
+  startUpdate() {
     this.setState({
-      profile_image: this.props.user.profile_image,
-      username: this.props.user.username,
-      email: this.props.user.email,
-      password: this.props.user.password,
-      first_name: this.props.user.first_name,
-      last_name: this.props.user.last_name,
-      age: this.props.user.age,
-      bio: this.props.user.bio,
-      updating_account: true,
+      updated_value: this.props.value,
+      updating: true
     });
   }
-
-  stopUpdating() {
-    this.setState({updating_account: false});
+  cancelUpdate() {
+    this.setState({updating: false});
   }
-
-  finishUpdating() {
-    // Send new profile data to express
-    // Tell parent to re-request user data
-    // set updating to false
-    this.setState({updating_account: false});
+  finishUpdate() {
+    let values = {[this.props.valueName]: this.state.updated_value};
+    this.setState({updating: false});
+    updateUser(values).then(result => {
+      if (result.success) {
+        this.props.updateUser();
+      } else {
+        alert(result.fail_message);
+      }
+    });
   }
+  render(){
+    return (<div className="account-field">
+      <span className="account-field-label">{this.props.label}</span>
+      {this.state.updating? <>
+        <input className="account-field-value" type={this.props.type} value={this.state.updated_value} onChange={this.updateValue}/>
+        <div className="account-field-buttons">
+          <button type="button" onClick={this.finishUpdate}>✅</button>
+          <button type="button" onClick={this.cancelUpdate}>🚫</button>
+        </div>
+      </> : <>
+        <span className="account-field-value">{this.props.value}</span>
+        <div className="account-field-buttons">
+          <button id="with-border" type="button" onClick={this.startUpdate}>Edit</button>
+        </div>
+      </>}
+    </div>);
+  }
+}
 
+class AccountInfo extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      goToProfile: false
+    };
+    this.updateProfile = this.updateProfile.bind(this);
+    this.deleteProfile = this.deleteProfile.bind(this);
+    this.logout = this.logout.bind(this);
+    this.deleteUserAsync = this.deleteUserAsync.bind(this);
+  }
+  updateProfile(){
+    this.setState({goToProfile: true});
+  }
+  async deleteUserAsync(){
+    let confirmation = await window.confirm("Are you sure you want to delete your Profile?");
+    if (!confirmation) {return;}
+    await deleteUser();
+    await this.props.updateUser();
+  }
+  deleteProfile(){
+    this.deleteUserAsync();
+  }
+  logout(){
+    // send request to logout backend
+    logoutUser().then(result => {
+      this.props.updateUser();
+    });
+  }
+  render(){
+    if (this.state.goToProfile) {return <Navigate to='/profile'/>;}
+    return (<div className="account-info">
+      <h1 className="section-title">Account Info</h1>
+      <AccountField label="Username: " value={this.props.user.username} valueName="username" type="text" updateUser={this.props.updateUser}/>
+      <AccountField label="Email: " value={this.props.user.email} valueName="email" type="email" updateUser={this.props.updateUser}/>
+      <AccountField label="Password: " value={this.props.user.password} valueName="password" type="text" updateUser={this.props.updateUser}/>
+      <div className="account-buttons">
+        <button className="update-profile" type="button" onClick={this.updateProfile}>Update Profile</button>
+        <button className="logout" type="button" onClick={this.logout}>Logout</button>
+        <button className="delete-profile" type="button" onClick={this.deleteProfile}>Delete Profile</button>
+      </div>
+    </div>);
+  }
+}
+
+class SpotifyInfo extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      spotify_username: "Loading"
+    };
+    this.link = this.link.bind(this);
+    this.populateSpotifyData = this.populateSpotifyData.bind(this);
+  }
+  async populateSpotifyData(authToken) {
+    // using the auth token, ask the spotify API for some user data like spotify username, most recent song.
+    
+  }
+  componentDidMount(){
+    if (this.props.user.spotify == null) {return;}
+    // grab spotify api data
+    this.populateSpotifyData(this.props.user.spotify.authToken);
+  }
+  link(){
+    // start linking process
+    authSpotify().then(_ => {
+      this.props.updateUser();
+    })
+  }
+  render(){
+    return (<div className="spotify-info">
+      <h1 className="section-title">Spotify Data</h1>
+      {this.props.user.spotify == null ? <>
+        <button className="spotify-link-button" type="button" onClick={this.link}>Link Spotify Account</button>
+      </> : <>
+        
+      </>}
+    </div>);
+  }
+}
+
+class AccountPage extends React.Component {
   render() {
-    let source = this.props.user;
-    if (this.state.updating_account) {source = this.state}
-
-    if (this.props.loading || source == null) {
+    if (this.props.authLoading) {
       return (<>
-        <div className = "grid-background"></div>
+        <div className="grid-background"/>
         <h1>Loading...</h1>
       </>);
     }
-
     return (<>
       <div className="grid-background"></div>
       <div className="account-block">
-        <h1>Account</h1>
-        <div className="account-icon">
-          <ImageElement default_state={{
-            fallback: default_user, 
-            editable: this.state.updating_account, 
-            alt_text: "Profile Icon",
-            cropped_size: 512,
-            data: source.profile_image ?? null
-          }} onImageUpload={this.setAccountIcon}/>
-        </div>
-        <label className="account-uname">
-          Username: 
-          <input type="text" 
-            readOnly={this.state.updating_account? false : true} 
-            field="username" 
-            value={source.username} 
-            onChange={this.handleAccountFieldChange}
-          />
-        </label>
-        <div className="account-email">
-          Email: 
-          <input type="text" 
-            readOnly={this.state.updating_account? false : true} 
-            field="email" 
-            value={source.email} 
-            onChange={this.handleAccountFieldChange}
-          />
-        </div>
-        <div className="account-password">
-          <div>
-            Password: 
-            <input type={this.state.show_password ? "text" : "password"} 
-              readOnly={this.state.updating_account? false : true} 
-              field="password" 
-              value={source.password} 
-              onChange={this.handleAccountFieldChange}
-            />
-          </div>
-          <label>
-            <input type="checkbox" onChange={this.togglePasswordVisibility}/> 
-            Show Password
-          </label>
-        </div>
-        <div className="account-name">
-          First: 
-          <input type="text" 
-            readOnly={this.state.updating_account? false : true} 
-            field="first_name" 
-            placeholder="N/A"
-            value={source.first_name} 
-            onChange={this.handleAccountFieldChange}
-          />
-          Last: 
-          <input type="text" 
-            readOnly={this.state.updating_account? false : true} 
-            field="last_name" 
-            placeholder="N/A"
-            value={source.last_name} 
-            onChange={this.handleAccountFieldChange}
-          />
-        </div>
-        <div className="account-age">
-          Age: 
-          <input type="number" 
-            readOnly={this.state.updating_account? false : true} 
-            field="age" 
-            placeholder="N/A"
-            value={source.age} 
-            onChange={this.handleAccountFieldChange}
-          />
-        </div>
-        <div className="account-bio">
-          Bio: 
-          <input type="text" 
-            readOnly={this.state.updating_account? false : true} 
-            field="bio" 
-            placeholder=""
-            value={source.bio} 
-            onChange={this.handleAccountFieldChange}
-          />
-        </div>
-        <div className="update-account-button">
-          {this.state.updating_account? <>
-            <button type="button" onClick={this.stopUpdating}>Cancel</button>
-            <button type="button" onClick={this.finishUpdating}>Save</button>
-          </>:<>
-            <button type="button" onClick={this.startUpdating}>Update Profile</button>
-          </>}
-        </div>
+        <AccountInfo user={this.props.user} updateUser={this.props.updateUser}/>
+        <SpotifyInfo user={this.props.user} updateUser={this.props.updateUser}/>
       </div>
     </>);
   }
 }
+export default loggedInPage(AccountPage);
 
-export default withUserAuth(AccountPage);
 /**
 function ProfilePage(){
     const [profilePic, setProfilePic] = useState(null);

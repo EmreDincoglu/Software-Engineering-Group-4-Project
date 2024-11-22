@@ -1,41 +1,39 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { updateSpotifyToken } from "../../lib/backend";
+import { loggedInPage } from "../../lib/auth";
 import { withParams } from "../../lib/default";
 
 class SpotifyCallbackPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            redirectToHomepage: false,
-            redirectToLogin: false
+            redirectToHomepage: false
         };
+        this.updateSpotify = this.updateSpotify.bind(this);
     }
-
-    componentDidMount() {
+    async updateSpotify() {
         //get url params
         let state = this.props.params.get('state');
         let code = this.props.params.get('code');
         let error = this.props.params.get('error');
         if (error != null) {
-            this.setState({redirectToLogin: true});
             alert("Spotify Returned Error: " + error);
-        }
-        //ask express to update spotify code
-        updateSpotifyToken({user_id: state, token: code}).then(result => {
+        }else {
+            //ask express to update spotify code
+            let result = await updateSpotifyToken({user_id: state, token: code});
             if (!result.success) {
                 alert("Failed: " + result.error_message);
-                this.setState({redirectToLogin: true});
-                return;
             }
-            this.setState({redirectToHomepage: true});
-        });
+        }
+        this.setState({redirectToHomepage: true});
+        await this.props.updateUser();
+    }
+    componentDidMount() {
+        this.updateSpotify();
     }
 
     render() {
-        if (this.state.redirectToLogin) {
-            return <Navigate to='/login' />;
-        }
         if (this.state.redirectToHomepage) {
             return <Navigate to='/home' />;
         }
@@ -43,4 +41,4 @@ class SpotifyCallbackPage extends React.Component {
     }
 }
 
-export default withParams(SpotifyCallbackPage);
+export default loggedInPage(withParams(SpotifyCallbackPage));
