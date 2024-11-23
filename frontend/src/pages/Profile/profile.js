@@ -27,11 +27,7 @@ export default function ProfilePage() {
         const fetchProfile = async () => {
             try {
                 if (ProfileComplete) {
-<<<<<<< Updated upstream
                     const response = await fetch('http://localhost:5000/getProfile', { credentials: 'include' });
-=======
-                    const response = await fetch('http://localhost:5000/api/getProfile', {method: 'GET'},{ credentials: 'include' });
->>>>>>> Stashed changes
                     const result = await response.json();
                     console.log('Profile Fetch Result:', result);
                     if (result.success) {
@@ -196,21 +192,7 @@ export default function ProfilePage() {
             case 4:
                 return (
                     <div>
-<<<<<<< Updated upstream
-                        <h2>What is your gender preference?</h2>
-                        <div className="sexual-orientation-buttons">
-                            {['Straight', 'Gay', 'Bisexual', 'Pansexual'].map((sexualorientationOption) => (
-                                <label key={sexualorientationOption}>
-                                    <input
-                                        type="radio"
-                                        name="sexual_orientation"
-                                        value={sexualorientationOption}
-                                        checked={profileData.sexual_orientation === sexualorientationOption}
-                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
-                                    />
-                                    {sexualorientationOption}
-=======
-                        <h2>What is your sexual orientation?</h2>
+                    <h2>What is your sexual orientation?</h2>
                         <div className='sexual-orientation-buttons'>
                             {['Straight', 'Gay', 'Bisexual', 'Pansexual'].map((orientation) => (
                                 <label key={orientation}>
@@ -222,7 +204,6 @@ export default function ProfilePage() {
                                         onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
                                     />
                                     {orientation}
->>>>>>> Stashed changes
                                 </label>
                             ))}
                         </div>
