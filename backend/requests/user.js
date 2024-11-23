@@ -88,7 +88,21 @@ const blockUser = user_request(async(req, res, user) => {
     const blockedUser = await User.findById(req.body.user_id);
     if (!blockedUser) {res.json({success: false, invalid_user: true}); return;}
     // Block the user here. Maybe make it a toggle like the like post function?
-
+    // Maps exist for mongoose however we only need a set and not a map, so even though a maps time comp would be way better
+    // for the sake of this project linear time should be fine so we can save on space
+    const index = user.blocked.indexOf(blockedUser._id);
+    var blocked;
+    if (index > -1){
+        user.blocked.splice(index, 1);
+        blocked = false;
+    }
+    else {
+        user.blocked.push(blockedUser._id);
+        blocked = true;
+    }
+    await user.save();
+    res.json({success: true, blocked: blocked});
+    
 });
 // Follow a user specified by user_id
 const followUser = user_request(async(req, res, user) => {
@@ -98,5 +112,16 @@ const followUser = user_request(async(req, res, user) => {
     //make sure one doesnt block the other
     if(await checkBlocked(user, followedUser)) {res.json({success: false, blocked: true}); return;}
     // Follow the user here. Maybe make it a toggle like the like post function?
-
+    const index = user.followed.indexOf(followedUser._id);
+    var followed;
+    if (index > -1) {
+        user.followed.splice(index, 1);
+        followed = false;
+    }
+    else {
+        user.followed.push(followUser._id);
+        followed = true;
+    }
+    await user.save();
+    res.json({success: true, followed: followed});
 });

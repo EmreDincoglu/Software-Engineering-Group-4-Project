@@ -17,10 +17,10 @@ const StringValidationNamespace = {
     alpha_lower: "abcdefghijklmnopqrstuvwxyz",
     alpha_upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     numeric: "0123456789",
-    
-    alphanumeric: StringValidationNamespace.alpha_lower + 
-                  StringValidationNamespace.alpha_upper + 
-                  StringValidationNamespace.numeric,
+    // the backend refuses to run without this commented out and idk why
+    // alphanumeric: StringValidationNamespace.alpha_lower + 
+    //               StringValidationNamespace.alpha_upper + 
+    //               StringValidationNamespace.numeric,
 
     character_isAlpha: function (char) {
         if (('a' <= char <= 'z') ||
