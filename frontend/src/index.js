@@ -3,12 +3,8 @@ import {createRoot} from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 
-import LoginPage from './pages/Login/login';
-import {RootPage, AboutPage} from './pages/Root/root';
-import HomePage from './pages/Home/home'
-import ProfilePage from './pages/Profile/profile'
-import SpotifyCallbackPage from './pages/SpotifyAuthCallback/spotify';
-import {AuthProvider} from './pages/Login/AuthProvider';
+import {LoginPage, RootPage, AboutPage, HomePage, AccountPage, SpotifyCallbackPage} from './pages/default';
+import { AuthProvider } from './lib/auth';
 
 export default function App() {return (
     <React.StrictMode>
@@ -19,7 +15,7 @@ export default function App() {return (
                 <Route index element={<AboutPage/>} />
                 <Route path="login" element={<LoginPage/>}/>
                 <Route path="home" element={<HomePage/>}/>
-                <Route path="profile" element={<ProfilePage/>}/>
+                <Route path="account" element={<AccountPage/>}/>
             </Route>
             <Route path="/spotifyAuthCallback" element={<SpotifyCallbackPage/>}/>
         </Routes>

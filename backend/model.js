@@ -1,16 +1,17 @@
-const mongoose = require('mongoose');
-const moment = require('moment');
+// Imports
+import { createConnection, Schema, Types } from 'mongoose';
+import moment from 'moment';
+// Database definition
+const databases = {
+    users: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
+    messages: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0'),
+    posts: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userPosts?retryWrites=true&w=majority&appName=Cluster0'),
+    liked: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userLiked?retryWrites=true&w=majority&appName=Cluster0'),
+    blocked: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userBlocked?retryWrites=true&w=majority&appName=Cluster0'),
+    follows: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userFriends?retryWrites=true&w=majority&appName=Cluster0')
+};
 
-const userDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0');
-const messageDatabase = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0');
-const userPosts = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userPosts?retryWrites=true&w=majority&appName=Cluster0');
-const userLiked = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userLiked?retryWrites=true&w=majority&appName=Cluster0');
-const userBlocked = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userBlocked?retryWrites=true&w=majority&appName=Cluster0');
-const userFollows = mongoose.createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userFriends?retryWrites=true&w=majority&appName=Cluster0');
-
-/*
-    Helper Functions:
-*/
+// Helper Methods
 const StringValidationNamespace = {
 
     alpha_lower: "abcdefghijklmnopqrstuvwxyz",
@@ -86,28 +87,39 @@ const StringValidationNamespace = {
         return true;
     },
 };
-const userSchema = new mongoose.Schema({
+
+// Schema and model definition
+var schemas = {};
+var models = {};
+
+//User
+schemas.user = new Schema({
     username: { type: String, required: true},
     // lowercase version of username, used for uniqueness of usernames
     _lc_uname: {type: String, required: true},
     password: { type: String, required: true },
     email: { type: String, required: true},
-    first_name: String,
-    last_name: String,
-    age: Number,
-    birthday: Date,
-    spotify_token: String,
-    session_id: Number,
-    session_date: Date
+    session: {
+        sid: Number,
+        date: Date,
+    },
+    // Blocked and followed user _ids
+    blocked: [Types.ObjectId],
+    followed: [Types.ObjectId],
+    // Owned post _ids
+    posts: [Types.ObjectId],
+    // Liked post _ids
+    liked: [Types.ObjectId],
 });
-
-userSchema.methods = {
+schemas.user.methods = {
     checkUniqueUsername: async function() {
-        if (await userDatabase.model('UserAccount').findOne({_lc_uname: this._lc_uname})) {return false;}
+        let found = await databases.users.model('UserAccount').findOne({_lc_uname: this._lc_uname});
+        if (found != null && found.id != this.id) {return false;}
         return true;
     },
     checkUniqueEmail: async function() {
-        if (await userDatabase.model('UserAccount').findOne({email: this.email})) {return false;}
+        let found = await databases.users.model('UserAccount').findOne({email: this.email});
+        if (found != null && found.id != this.id) {return false;}
         return true;
     },
     checkValidUsername: function() {
@@ -138,120 +150,106 @@ userSchema.methods = {
                 password_specialValidCharacters)
             );
     },
-    generateSession: async function() {
-        this.session_id = Math.floor(Math.random() * 10000000);
-        this.session_date = Date.now();
+    generateSession: async function(res) {
+        this.session.sid = Math.floor(Math.random() * 10000000);
+        this.session.date = Date.now();
         await this.save();
+        res.cookie('session_id', this.session.sid);
+        res.cookie('user_id', this.id);
     },
     authSession: async function(session_id) {
-        if (this.session_id != session_id) {return false;}
-        // Delete old session
-        let start = this.session_date;
-        if (!start) {
-            this.session_id = null;
+        if (this.session.sid != session_id) {return false;}
+        //delete old sessions
+        if(moment(Date.now()).diff(moment(this.session.date), 'days') > 1.0){
+            this.session.sid = null;
+            this.session.date = null;
             await this.save();
             return false;
         }
-        if (moment(Date.now()).diff(moment(start), 'days') > 1.0) {
-            this.session_id = null;
-            this.session_date = null;
-            await this.save();
-            return false;
-        }
+        await this.save();
         return true;
     },
-    endSession: async function() {
-        this.session_id = null;
-        this.session_date = null;
-        return true;
+    // Determines if this user has blocked user_id
+    checkBlocked: async function(user_id) {
+        return (this.blocked??[]).includes(user_id);
     }
 };
+schemas.user.statics = {
+    create_new: function(data) {
+        return databases.users.model('UserAccount')({
+            username: data.username,
+            _lc_uname: data.username.toLowerCase(),
+            email: data.email.toLowerCase(),
+            password: data.password,
+            blocked: [],
+            followed: [],
+            posts: [],
+            liked: [],
+        });
+    }
+};
+models.user = databases.users.model('UserAccount', schemas.user);
 
-const imageSchema = new mongoose.Schema({
-    //data stores the actual image, and also stores the content type
-    data: String
-}) 
+// Spotify
+schemas.spotify = new Schema({
+    user: {type: Types.ObjectId, required: true},
+    access_token: {type: String, required: true},
+    refresh_token: {type: String, required: true},
+    date: {type: Date, required: true},
+});
+models.spotify = databases.users.model('SpotifyAccount', schemas.spotify);
 
-const messageSchema = new mongoose.Schema({
+// Profile
+schemas.profile = new Schema({
+    user_id: {type: Types.ObjectId, required: true},
+    pref_name: String,
+    age: Number,
+    birthday: Date,
+    gender: String,
+    sexual_orientation: String,
+    gender_preference: [String],
+    relationship_goals: String,
+    favorite_genres: [String],
+    favorite_artists: [String],
+    photos: [String],
+    profile_pic: String
+});
+schemas.profile.statics = {
+    create_new: function(user_id) {
+        return databases.users.model('UserProfile').new({
+            user_id: user_id,
+            gender_preference: [],
+            favorite_genres: [],
+            favorite_artists: [],
+            photos: [],
+        });
+    }
+};
+models.profile = databases.users.model('UserProfile', schemas.profile);
+
+// Messages
+schemas.message = new Schema({
     date: { type: Date, required: true },
     message: { type: String, required: true },
     sender: { type: String, required: true },
     recipient: { type: String, required: true }
 });
 
-const profileSchema = new mongoose.Schema({
-<<<<<<< Updated upstream
-    user_id: {type: mongoose.ObjectId, required: true},
-    pref_name: String,
-=======
-    _lc_uname: {type: String, required: true},
-    firstname: String,
->>>>>>> Stashed changes
-    age: Number,
-    birthday: Date,
-    gender: String,
-    sexual_orientation: String,
-<<<<<<< Updated upstream
-    gender_preference: [String],
-    relationship_goals: String,
-    favorite_genres: [String],
-    favorite_artists: [String],
-    photos: [imageSchema],
-    profile_pic: imageSchema
-
-=======
-    gender_preference: String,
-    relationship_goals: String,
-    favorite_artists: String,
-    favorite_genres: String,
-    photos:[imageSchema]
->>>>>>> Stashed changes
-});
-
-const postSchema = new mongoose.Schema({
-    user_ID: {type: mongoose.ObjectId, required: true},
+// Posts
+schemas.post = new Schema({
+    user_ID: {type: Types.ObjectId, required: true},
     date: {type: Date, required: true},
-    desc: String,
     likes: {type: Number, required: true},
+    desc: String,
     song_id: String,
-    post_image: imageSchema
+    post_image: String
 });
-//I just realized that these two schemas are duplicates and I had no reason in making both of them, I could have reused them
-//for this project since were almost do
-const userPostPointer = new mongoose.Schema({
-    post_id: {type: mongoose.ObjectId, required: true}
-})
+models.post = databases.posts.model('Post', schemas.post);
 
-const userLikedPointer = new mongoose.Schema({
-    post_id: {type: mongoose.ObjectId, required: true}
-})
-
-const userPointer = new mongoose.Schema({
-    user_id: {type: mongoose.ObjectId, required: true}
-})
-
-
-const ProfileModel = userDatabase.model('profileData', profileSchema);
-const UserModel = userDatabase.model('UserAccount', userSchema);
-const PostModel = userDatabase.model('postData', postSchema);
-
-module.exports = {
-    //models
-    User: UserModel,
-    Profile: ProfileModel,
-    Post: PostModel,
-
-    //databases
-    messageDB: messageDatabase,
-    userPostDB: userPosts,
-    userLikedDB: userLiked,
-    userBlockedDB: userBlocked,
-    userFollowDB: userFollows,
-
-    //schemas
-    PostPointer: userPostPointer,
-    messageSchema: messageSchema,
-    likesPointer: userLikedPointer,
-    userPointer: userPointer
-};
+// Exports
+export {databases, schemas, models};
+export const User = models.user;
+export const Profile = models.profile;
+export const Post = models.post;
+export const SpotifyAccount = models.spotify;
 

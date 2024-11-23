@@ -1,5 +1,3 @@
-import React from 'react';
-import { useSearchParams } from 'react-router-dom';
 import isMatch from 'lodash.ismatch';
 
 /**
@@ -32,7 +30,7 @@ async function sendRequest(config) {
         if (!response.ok) {return {success: false, fail_message: ("Http Error: " + response.statusText)};}
         let data = await response.json();
         if (!data) {return {success: false, fail_message: "Invalid fetch response body"};}
-        for (const [subset, msg] in config.fail_conds) {
+        for (const [subset, msg] of config.fail_conds) {
             if (isMatch(data, subset)) {return {success: false, fail_message: msg};}
         }
         if (config.desired_data === false) {return {success: true};}
@@ -48,7 +46,7 @@ async function sendRequest(config) {
  */
 export async function getUser() {
     let result = await sendRequest({
-        url: 'http://localhost:5000/getUserData',
+        url: 'http://localhost:5000/user/getData',
         method: 'GET',
         credentials: true,
         body: null,
@@ -64,7 +62,7 @@ export async function getUser() {
 */
 export async function createUser(userData) {
     return await sendRequest({
-        url: 'http://localhost:5000/createUser',
+        url: 'http://localhost:5000/user/create',
         method: 'POST',
         credentials: true,
         body: userData,
@@ -76,19 +74,64 @@ export async function createUser(userData) {
         desired_data: false
     });
 }
+/**
+ * Deletes a user account
+ */
+export async function deleteUser() {
+    return await sendRequest({
+        url: 'http://localhost:5000/user/delete',
+        method: 'DELETE',
+        credentials: true,
+        body: null,
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+        ],
+        desired_data: false
+    });
+}
+/*
+    Update user profile values on express, interpret results
+*/
+export async function updateUser(userData) {
+    return await sendRequest({
+        url: 'http://localhost:5000/user/update',
+        method: 'PUT',
+        credentials: true,
+        body: userData,
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, duplicate_username: true}, "Username is already in use"],
+            [{success: false, duplicate_email: true}, "Email is already in use"],
+        ],
+        desired_data: false
+    });
+}
 /*
     Login to an existing user on express, get a session, interpret success result
 */
 export async function loginUser(userData) {
     return await sendRequest({
-        url: 'http://localhost:5000/createSession',
+        url: 'http://localhost:5000/session/create',
         method: 'POST',
         credentials: true,
         body: {username: userData.username, password: userData.password},
         fail_conds: [
-            [{invalid_username: true}, "Invalid User"],
+            [{invalid_user: true}, "Invalid User"],
             [{invalid_password: true}, "Incorrect Password"],
         ],
+        desired_data: false
+    });
+}
+/**
+ * Logs out the user by setting the session cookie blank. requires a backend call because of the way cookies are set
+ */
+export async function logoutUser(){
+    return await sendRequest({
+        url: 'http://localhost:5000/session/end',
+        method: 'GET',
+        credentials: true,
+        body: null,
+        fail_conds: [],
         desired_data: false
     });
 }
@@ -96,7 +139,7 @@ export async function loginUser(userData) {
 // Returns {success: true} if authorized, {success: false, fail_message} if invalid session, and doesnt return otherwise
 export async function authSpotify() {
     let result = await sendRequest({
-        url: 'http://localhost:5000/authSpotify',
+        url: 'http://localhost:5000/user/spotify/connect/begin',
         method: 'GET',
         credentials: true,
         body: null,
@@ -106,14 +149,13 @@ export async function authSpotify() {
         desired_data: null
     });
     if (!result.success) {return result;} // invalid session
-    if (result.data.success) {return {success: true};} // user is already authorized with spotify
     window.location = result.data.path; // redirect to spotify auth website
 }
 // Asks the express app for data regarding the homepage, returning the data in an object
 // Gets user data, and redirects to spotify if the user has no spotify token
 export async function updateSpotifyToken(sendData) {
     return await sendRequest({
-        url: 'http://localhost:5000/uploadSpotifyAuth',
+        url: 'http://localhost:5000/user/spotify/connect/finish',
         method: 'POST',
         credentials: true,
         body: sendData,
@@ -125,11 +167,3 @@ export async function updateSpotifyToken(sendData) {
         desired_data: false
     });
 }
-
-// Wraps a component to have search params from the url
-export const withRouter = WrappedComponent => props => {
-    // eslint-disable-next-line
-    const [searchParams, _] = useSearchParams();
-
-    return (<WrappedComponent {...props} params={searchParams}/>);
-};

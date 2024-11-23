@@ -1,11 +1,9 @@
-import './profile.css';
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
-import { useAuth } from '../Login/AuthProvider';
 
 export default function ProfilePage() {
-    const { authUser, setProfileComplete, ProfileComplete } = useAuth();
+    const { authUser, setIsProfileComplete, isProfileComplete } = useAuth();
     const [step, setStep] = useState(1);
     const [profileData, setProfileData] = useState({
         firstname: '',
@@ -26,7 +24,7 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                if (ProfileComplete) {
+                if (isProfileComplete) {
                     const response = await fetch('http://localhost:5000/getProfile', { credentials: 'include' });
                     const result = await response.json();
                     console.log('Profile Fetch Result:', result);
@@ -41,7 +39,7 @@ export default function ProfilePage() {
             }
         };
         fetchProfile();
-    }, [ProfileComplete]);
+    }, [isProfileComplete]);
 
     const handleInputChange = (key, value) => {
         setProfileData((prevData) => ({
@@ -122,10 +120,10 @@ export default function ProfilePage() {
         });
     }
 
-    const handleSaveProfile = async (profileData) => {
+    const handleSaveProfile = async (event) => {
         try {
-            const response = await fetch('http://localhost:5000/api/profiles', {
-                method: 'POST',
+            const response = await fetch('http://localhost:5000/editProfile', {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(profileData),
                 credentials: 'include',
@@ -133,13 +131,15 @@ export default function ProfilePage() {
             const result = await response.json();
             if (result.success) {
                 alert('Profile saved successfully!');
-                setProfileComplete(true);
+                setIsProfileComplete(true);
                 setIsEditing(false);
             } else {
                 alert('Error saving profile.');
             }
         } catch (error) {
             console.error('Error saving profile:', error);
+            console.error(profileData);
+            console.trace();
             alert('Something went wrong.');
         }
     };
@@ -317,7 +317,7 @@ export default function ProfilePage() {
 
     if (isLoading) return <div>Loading...</div>;
 
-    if (ProfileComplete && !isEditing) {
+    if (isProfileComplete && !isEditing) {
         return (
             <div className="profile-view">
                 <h1>{profileData.firstname}</h1>

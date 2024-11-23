@@ -1,18 +1,9 @@
 import React from "react";
 import './login.css';
-import { createUser, loginUser } from '../../lib';
-import { Navigate } from "react-router-dom";
-import { useAuth } from './AuthProvider';
+import { createUser, loginUser } from '../../lib/backend';
+import { loggedOutPage } from "../../lib/auth";
 
-function withAuth(Component) {
-  return function AuthComponent(props) {
-    const auth = useAuth();
-    return <Component {...props}  auth={auth}/>;
-  };
-}
-
- class LoginPage extends React.Component {
-
+class LoginPage extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -20,8 +11,7 @@ function withAuth(Component) {
       password: '',
       email: '',
       show_password: false,
-      isLogin: true,
-      redirectToHomepage: false
+      isLogin: true
     };
     this.fieldChangeHandler = this.fieldChangeHandler.bind(this);
     this.checkboxFieldChangeHandler = this.checkboxFieldChangeHandler.bind(this);
@@ -40,17 +30,16 @@ function withAuth(Component) {
     event.preventDefault();
     const creds = {username: this.state.username, password: this.state.password};
     const result = await loginUser(creds);
-    if (!result.success) {alert(result.fail_message); return;}
-    if (result.success){this.props.auth.setIsLoggedIn(true);}
-    this.setState({redirectToHomepage: true});
+    console.log(result);
+    if (!result.success) {console.log("DEBUG"); alert(result.fail_message); return;}
+    this.props.updateUser();
   }
   async handleRegister(event) {
     event.preventDefault();
     const creds = {username: this.state.username, password: this.state.password, email: this.state.email};
     const result = await createUser(creds);
     if (!result.success) {alert(result.fail_message); return;}
-    if (result.success){this.props.auth.setIsLoggedIn(true);}
-    this.setState({redirectToHomepage: true});
+    this.props.updateUser();
   }
   swapLogin() {
     this.setState({
@@ -62,7 +51,6 @@ function withAuth(Component) {
   }
 
   render() {
-    if (this.state.redirectToHomepage) {return <Navigate to='/home'/>;}
     if (this.state.isLogin) { return (<>
       <div className= "grid-background"></div>
       <div className="login-body">
@@ -91,17 +79,17 @@ function withAuth(Component) {
               <input type="checkbox" field="show_password" onChange={this.checkboxFieldChangeHandler}/> 
                 Show Password
             </label>
-            <text>Forgot Password</text>
+            <span>Forgot Password</span>
           </div>
           <button type="submit">Login</button>
           <p className="register-link">
             Don't have an account?
-            <text onClick={this.swapLogin}> Sign Up</text>
+            <span onClick={this.swapLogin}> Sign Up</span>
           </p>
         </form>
       </div>
     </>);}else { return (<>
-      <div class = "grid-background"></div>
+      <div className = "grid-background"></div>
       <div className="login-body">
         <form onSubmit={this.handleRegister}>
           <h1>Sign Up</h1>
@@ -135,12 +123,11 @@ function withAuth(Component) {
           <button type="submit">Sign Up</button>
           <p className="login-link">
             Already have an account? 
-            <text onClick={this.swapLogin}> Login</text>
+            <span onClick={this.swapLogin}> Login</span>
           </p>
         </form>
       </div>
     </>);}
   }
 }
-
-export default withAuth(LoginPage);
+export default loggedOutPage(LoginPage);
