@@ -12,6 +12,8 @@ const mongo = require('./mongoose.js');
 */
 
 const app = express();
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/'});
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -41,6 +43,15 @@ app.delete('/deleteUser', mongo.deleteUser);
 
 app.put('/endSession', mongo.endSession);
 app.put('/editProfile', mongo.editProfile);
+app.post('/uploadPhotos', upload.array('photos', 9),(req,res) => {
+    try{
+        const Ppath = req.files.map(file => file.path);
+        res.status(200).json({ success: true, photos: Ppath});
+    }catch (error){
+        console.error('Error uploading photos:', error);
+        res.status(500).json({ success: false, message: 'Photo upload failed'});
+    }
+})
 app.put('/updateUser', mongo.updateUser)
 
 /*
