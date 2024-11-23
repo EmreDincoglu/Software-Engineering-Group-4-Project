@@ -275,14 +275,23 @@ const getProfile = async(req, res, _) => {
     (this allows us to get null data from a profile, for instance if someone hasnt edited their profile but we know their user
     exists, then it will just send back an empty profile of data that will be filled in eventually)
     */
+<<<<<<< Updated upstream
     const otherUser = await model.User.findById(req.body.user_id);
     if (!otherUser) {res.json({success: false, invalid_user: true}); return;}
     //checks to see if user is blocked, if so will not send profile data
     if (await checkBlocked(user._id, otherUser._id)) {res.json({success: false, blocked: true}); return;}
     let profile = await model.Profile.findOne({user_id: req.body.user_id});
     if (!profile) {profile = await createProfile(req.body.user_id);}
+=======
+    if (!await model.Profile.findOne({_lc_uname: req.body.username.toLowerCase()}))
+    {res.json({success: false, invalid_user: true})}
+    let profile = await model.Profile.findOne({_lc_uname: req.body.username.toLowerCase()});
+    if (!profile) {profile = await createProfile(req.body.username);}
+>>>>>>> Stashed changes
     res.json(profile);
 }
+
+
 
 const editProfile = async(req, res, _) => {
     //auth session
@@ -307,9 +316,14 @@ const editProfile = async(req, res, _) => {
         data: "contentType + base64 image data"
     }
     */
-    profile.profile_pic = req.body.profile_pic;
-    await profile.save();
-    res.json({success: true, profile});
+    // profile.profile_pic = req.body.profile_pic;
+    try {
+        await profile.save();
+        res.status(200).json({ success: true, profile });
+    } catch (error) {
+        console.error("Error saving profile:", error);
+        res.status(500).json({ success: false, message: "Failed to save profile." });
+    }
 }
 
 const createPost = async(req, res, _) => {

@@ -27,7 +27,11 @@ export default function ProfilePage() {
         const fetchProfile = async () => {
             try {
                 if (ProfileComplete) {
+<<<<<<< Updated upstream
                     const response = await fetch('http://localhost:5000/getProfile', { credentials: 'include' });
+=======
+                    const response = await fetch('http://localhost:5000/api/getProfile', {method: 'GET'},{ credentials: 'include' });
+>>>>>>> Stashed changes
                     const result = await response.json();
                     console.log('Profile Fetch Result:', result);
                     if (result.success) {
@@ -86,29 +90,11 @@ export default function ProfilePage() {
         {value: 'heavy-metal', label:"Heavy Metal"}
     ];
 
-    const handlePhotoUpload = async(index, event) => {
+    const handlePhotoUpload = async (event) => {
         const files = Array.from(event.target.files);
-
-        if (!files.length) return;
-
-        if (files.some(file => file.size > 5 * 1024 * 1024)) {
-            setPhotoError('File size must be less than 5MB.');
-            return;
-        }
-
-        if (profileData.photos.length + files.length > 9) {
-            setPhotoError('You can upload a maximum of 9 photos.');
-            return;
-        }
-
-        const newPhotoURLs = files.map(file => URL.createObjectURL(file));
-        setProfileData(prevData=> ({
-            ...prevData,
-            photos: [...prevData.photos, ...newPhotoURLs.slice(0,9 - prevData.photos.length)],
-        }))
-
         const formData = new FormData();
-        files.forEach(file => formData.append('photos', file));
+
+        files.forEach((file) => formData.append('photos', file))
 
         try {
             const response = await fetch('http://localhost:5000/uploadPhotos', {
@@ -119,7 +105,10 @@ export default function ProfilePage() {
 
             const result = await response.json();
             if (result.success) {
-                alert('Photos uploaded successfully!');
+                setProfileData((prevData) => ({
+                    ...prevData,
+                    photos: [...prevData.photos, ...result.photos], // Append new photo paths
+                }));
             } else {
                 alert('Error uploading photos.');
             }
@@ -127,8 +116,6 @@ export default function ProfilePage() {
             console.error('Error uploading photos:', error);
             alert('Something went wrong.');
         }
-
-        setPhotoError('');
     };
 
     const handlePhotoRemove = (index) => {
@@ -139,9 +126,9 @@ export default function ProfilePage() {
         });
     }
 
-    const handleSaveProfile = async () => {
+    const handleSaveProfile = async (profileData) => {
         try {
-            const response = await fetch('http://localhost:5000/api/editProfile', {
+            const response = await fetch('http://localhost:5000/api/profiles', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(profileData),
@@ -185,7 +172,6 @@ export default function ProfilePage() {
                             onChange={(e) => handleBirthdayChange( e.target.value)}
                         />
                     </div>
-                //     calculate age also
                 );
             case 3:
             return(
@@ -210,6 +196,7 @@ export default function ProfilePage() {
             case 4:
                 return (
                     <div>
+<<<<<<< Updated upstream
                         <h2>What is your gender preference?</h2>
                         <div className="sexual-orientation-buttons">
                             {['Straight', 'Gay', 'Bisexual', 'Pansexual'].map((sexualorientationOption) => (
@@ -222,6 +209,20 @@ export default function ProfilePage() {
                                         onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
                                     />
                                     {sexualorientationOption}
+=======
+                        <h2>What is your sexual orientation?</h2>
+                        <div className='sexual-orientation-buttons'>
+                            {['Straight', 'Gay', 'Bisexual', 'Pansexual'].map((orientation) => (
+                                <label key={orientation}>
+                                    <input
+                                        type='radio'
+                                        name='sexual_orientation'
+                                        value={orientation}
+                                        checked={profileData.sexual_orientation === orientation}
+                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
+                                    />
+                                    {orientation}
+>>>>>>> Stashed changes
                                 </label>
                             ))}
                         </div>
@@ -307,7 +308,7 @@ export default function ProfilePage() {
                                         id={`photo-input-${index}`}
                                         type="file"
                                         accept="image/*"
-                                        onChange={(e) => handlePhotoUpload(index, e)}
+                                        onChange={handlePhotoUpload}
                                         style={{ display: 'none' }}
                                     />
                                     {profileData.photos[index] && (

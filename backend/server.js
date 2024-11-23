@@ -7,6 +7,8 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const mongo = require('./mongoose.js');
+const multer = require('multer');
+const upload = multer({dest: 'uploads/'})
 /*
     App Definition:
 */
@@ -43,6 +45,7 @@ app.delete('/deleteUser', mongo.deleteUser);
 
 app.put('/endSession', mongo.endSession);
 app.put('/editProfile', mongo.editProfile);
+<<<<<<< Updated upstream
 app.post('/uploadPhotos', upload.array('photos', 9),(req,res) => {
     try{
         const Ppath = req.files.map(file => file.path);
@@ -51,6 +54,16 @@ app.post('/uploadPhotos', upload.array('photos', 9),(req,res) => {
         console.error('Error uploading photos:', error);
         res.status(500).json({ success: false, message: 'Photo upload failed'});
     }
+=======
+app.put('/uploadPhotos', upload.array('photos',9),(req,res)=>{
+try{
+    const photoPaths = req.files.map(file => file.path);
+    res.status(200).json({success: true, photos: photoPaths});
+}catch(error){
+    console.log(error);
+    res.status(500).json({ success: false, message: 'oopsie'})
+}
+>>>>>>> Stashed changes
 })
 app.put('/updateUser', mongo.updateUser)
 

@@ -180,12 +180,18 @@ const messageSchema = new mongoose.Schema({
 });
 
 const profileSchema = new mongoose.Schema({
+<<<<<<< Updated upstream
     user_id: {type: mongoose.ObjectId, required: true},
     pref_name: String,
+=======
+    _lc_uname: {type: String, required: true},
+    firstname: String,
+>>>>>>> Stashed changes
     age: Number,
     birthday: Date,
     gender: String,
     sexual_orientation: String,
+<<<<<<< Updated upstream
     gender_preference: [String],
     relationship_goals: String,
     favorite_genres: [String],
@@ -193,6 +199,13 @@ const profileSchema = new mongoose.Schema({
     photos: [imageSchema],
     profile_pic: imageSchema
 
+=======
+    gender_preference: String,
+    relationship_goals: String,
+    favorite_artists: String,
+    favorite_genres: String,
+    photos:[imageSchema]
+>>>>>>> Stashed changes
 });
 
 const postSchema = new mongoose.Schema({
