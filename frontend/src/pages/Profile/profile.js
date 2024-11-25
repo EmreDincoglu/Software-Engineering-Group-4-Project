@@ -1,352 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import Select from 'react-select';
-import makeAnimated from 'react-select/animated';
+import React from 'react';
+import {loggedInPage} from '../../lib/auth';
+import {calculate_age, withParams} from '../../lib/default';
+import {getProfile} from '../../lib/backend';
+import {Navigate} from "react-router-dom";
 
-export default function ProfilePage() {
-    const { authUser, setIsProfileComplete, isProfileComplete } = useAuth();
-    const [step, setStep] = useState(1);
-    const [profileData, setProfileData] = useState({
-        firstname: '',
-        birthday: '',
-        age: null,
-        gender: [],
-        sexual_orientation: '',
-        gender_preference: [],
-        relationship_goals: '',
-        favorite_genres: [],
-        favorite_artists: [],
-        photos: [],
-    });
-    const [isLoading, setIsLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
-    const [photoError, setPhotoError] = useState('');
+// State of the profile.
+const state = {
+  LOADING: 0, // User's profile is currently being accessed from the backend.
+  LOADED: 1, // User's profile has been aqcuired and is ready for display
+  BLOCKED: 2, // You or the other user have each other blocked
+  INVALID_USER: 3, //User does not exist
+  NOT_CREATED: 4 // User has not created the profile yet.
+};
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                if (isProfileComplete) {
-                    const response = await fetch('http://localhost:5000/getProfile', { credentials: 'include' });
-                    const result = await response.json();
-                    console.log('Profile Fetch Result:', result);
-                    if (result.success) {
-                        setProfileData(result.profile);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchProfile();
-    }, [isProfileComplete]);
-
-    const handleInputChange = (key, value) => {
-        setProfileData((prevData) => ({
-            ...prevData,
-            [key]: value,
-        }));
+class ProfilePage extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      // current state of profile loading
+      state: state.LOADING,
+      // id of the current user we are looking at. Null if we are looking at our own profile
+      user: "unset",
+      // profile data of the requested user.
+      profile: null,
     };
-
-    function calculateAge(birthday){
-        const today= new Date();
-        const birth = new Date(birthday);
-
-        let age = today.getFullYear()-birth.getFullYear();
-
-        const monthandday = today.getMonth() > birth.getMonth() ||
-            (today.getMonth() === birth.getMonth() &&
-                today.getDate() >= birth.getDate());
-        if (!monthandday){
-            age--;
-        }
-        return age;
+    this.update = this.update.bind(this);
+  }
+  // Called when the page is loaded or changed. Makes sure the correct profile is loaded
+  async update(){
+    // Get the requested user from the 'user' query param. null (meaning the logged in users profile) if no 'user' query param is set.
+    let user = this.props.params.get('user')??null;
+    // if our requested user hasn't changed, nothing to do, return;
+    if (this.state.user === user) {return;}
+    // if we are looking at our own profile get the profile from the user prop.
+    if (user === null) {
+      this.setState({
+        user: user, 
+        // Null profile means it has not been created
+        state: (this.props.user.profile == null) ? state.NOT_CREATED : state.LOADED, 
+        profile: this.props.user.profile??null
+      });
+      return;
     }
-
-    const handleBirthdayChange = (birthday) => {
-        const age = calculateAge(birthday);
-        setProfileData((prevData) => ({
-            ...prevData,
-            birthday,
-            age,
-        }))
-    }
-
-    const music_options = [
-        {value: 'pop' , label: 'Pop'},
-        {value: 'rock', label: 'Rock'},
-        {value: 'hip-hop', label: 'Hip Hop'},
-        {value: 'rap', label: 'Rap'},
-        {value: 'country', label: 'Country'},
-        {value: 'randb', label: 'R&B'},
-        {value: 'folk', label: 'Folk'},
-        {value: 'jazz', label: 'Jazz'},
-        {value: 'heavy-metal', label:"Heavy Metal"}
-    ];
-
-    const handlePhotoUpload = async (event) => {
-        const files = Array.from(event.target.files);
-        const formData = new FormData();
-
-        files.forEach((file) => formData.append('photos', file))
-
-        try {
-            const response = await fetch('http://localhost:5000/uploadPhotos', {
-                method: 'POST',
-                body: formData,
-                credentials: 'include',
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                setProfileData((prevData) => ({
-                    ...prevData,
-                    photos: [...prevData.photos, ...result.photos], // Append new photo paths
-                }));
-            } else {
-                alert('Error uploading photos.');
-            }
-        } catch (error) {
-            console.error('Error uploading photos:', error);
-            alert('Something went wrong.');
-        }
-    };
-
-    const handlePhotoRemove = (index) => {
-        setProfileData((prevData) => {
-            const updatedPhotos = [...prevData.photos];
-            updatedPhotos[index] = null;
-            return { ...prevData, photos: updatedPhotos };
-        });
-    }
-
-    const handleSaveProfile = async (event) => {
-        try {
-            const response = await fetch('http://localhost:5000/editProfile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(profileData),
-                credentials: 'include',
-            });
-            const result = await response.json();
-            if (result.success) {
-                alert('Profile saved successfully!');
-                setIsProfileComplete(true);
-                setIsEditing(false);
-            } else {
-                alert('Error saving profile.');
-            }
-        } catch (error) {
-            console.error('Error saving profile:', error);
-            console.error(profileData);
-            console.trace();
-            alert('Something went wrong.');
-        }
-    };
-
-    const renderStepContent = () => {
-        switch (step) {
-            case 1:
-                return (
-                    <div>
-                        <h2>Enter Your First Name</h2>
-                        <input
-                            type="text"
-                            value={profileData.firstname}
-                            onChange={(e) => handleInputChange('firstname', e.target.value)}
-                            placeholder="First Name"
-                        />
-                    </div>
-                );
-            case 2:
-                return (
-                    <div>
-                        <h2>Enter Your Birthday</h2>
-                        <input
-                            type="date"
-                            value={profileData.birthday}
-                            onChange={(e) => handleBirthdayChange( e.target.value)}
-                        />
-                    </div>
-                );
-            case 3:
-            return(
-                <div>
-                    <h2>What is your gender?</h2>
-                    <div className="gender-buttons">
-                        {['Man', 'Woman', 'Other'].map((genderOption) => (
-                            <label key={genderOption}>
-                                <input
-                                    type="radio"
-                                    name="gender"
-                                    value={genderOption}
-                                    checked={profileData.gender === genderOption}
-                                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                                />
-                                {genderOption}
-                            </label>
-                        ))}
-                    </div>
-                </div>
-            );
-            case 4:
-                return (
-                    <div>
-                    <h2>What is your sexual orientation?</h2>
-                        <div className='sexual-orientation-buttons'>
-                            {['Straight', 'Gay', 'Bisexual', 'Pansexual'].map((orientation) => (
-                                <label key={orientation}>
-                                    <input
-                                        type='radio'
-                                        name='sexual_orientation'
-                                        value={orientation}
-                                        checked={profileData.sexual_orientation === orientation}
-                                        onChange={(e) => handleInputChange('sexual_orientation', e.target.value)}
-                                    />
-                                    {orientation}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                )
-            case 5:
-                return (
-                    <div>
-                        <h2>What is your gender preference?</h2>
-                        <div className="gender-pref-buttons">
-                            {['Man', 'Woman', 'Other'].map((genderprefOption) => (
-                                <label key={genderprefOption}>
-                                    <input
-                                        type="radio"
-                                        name="gender-pref"
-                                        value={genderprefOption}
-                                        checked={profileData.gender_preference === genderprefOption}
-                                        onChange={(e) => handleInputChange('gender_preference', e.target.value)}
-                                    />
-                                    {genderprefOption}
-                                </label>
-                            ))}
-                        </div>
-                </div>
-            )
-            case 6:
-                return (
-                    <div>
-                        <h2>What are your goals for a relationship?</h2>
-                        <div className="relationship_goal-buttons">
-                            {['Long-Term', 'Short-Term', 'Other'].map((relationshipOption) => (
-                                <label key={relationshipOption}>
-                                    <input
-                                        type="radio"
-                                        name="relationship"
-                                        value={relationshipOption}
-                                        checked={profileData.relationship_goals === relationshipOption}
-                                        onChange={(e) => handleInputChange('relationship_goals', e.target.value)}
-                                    />
-                                    {relationshipOption}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                )
-            case 7:
-
-                return (
-                    <div>
-                        <h2>What are your favorite music genres & artists?</h2>
-                        <h3>Pick 3 max</h3>
-                        <div className="music-select">
-                            <Select
-                                components={makeAnimated()}
-                                options={music_options}
-                                value={profileData.favorite_genres.map((genre) => music_options.find((opt) => opt.value === genre))}
-                                onChange={(selectedOptions) => {
-                                    const selectedGenres = selectedOptions.map((option) => option.value);
-                                    handleInputChange('favorite_genres', selectedGenres);
-                                }}
-                                placeholder="Select your favorite genres"
-                               isMulti
-                           />
-                       </div>
-                    </div>
-                )
-            case 8:
-                const defaultImage = '/default-placeholder.png';
-                return (
-                    <div>
-                        <h2>Upload Your Best Photos</h2>
-                        <div className="photo-grid">
-                            {Array.from({ length: 9 }).map((_, index) => (
-                                <div key={index} className="photo-box">
-                                    <label htmlFor={`photo-input-${index}`}>
-                                        <img
-                                            src={profileData.photos[index] || defaultImage}
-                                            alt={`Photo ${index + 1}`}
-                                            className="photo-preview"
-                                        />
-                                    </label>
-                                    <input
-                                        id={`photo-input-${index}`}
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handlePhotoUpload}
-                                        style={{ display: 'none' }}
-                                    />
-                                    {profileData.photos[index] && (
-                                        <button
-                                            className="remove-button"
-                                            onClick={() => handlePhotoRemove(index)}
-                                        >Remove</button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        {photoError && <p style={{ color: 'red' }}>{photoError}</p>}
-                    </div>
-                );
-            case 9:
-                return (
-                    <div>
-                        <h2>prompts </h2>
-                    </div>
-                )
-            default:
-                return null;
-        }
-    };
-
-    if (isLoading) return <div>Loading...</div>;
-
-    if (isProfileComplete && !isEditing) {
-        return (
-            <div className="profile-view">
-                <h1>{profileData.firstname}</h1>
-                <div className = "basic-info">
-                    <h2> Age: {profileData.age}</h2>
-                    <h2> Relationship Goals: {profileData.relationship_goals}</h2>
-                    <h2> Gender: {profileData.gender}</h2>
-                    <h2> Sexual Orientation: {profileData.sexual_orientation}</h2>
-                    <h2> Birthday: {profileData.birthday}</h2>
-                </div>
-                <div className="music-section">
-                    <h2> Favorite Genres: {profileData.favorite_genres}</h2>
-                    <h2> Favorite Artists: {profileData.favorite_artists}</h2>
-                {/*    album cover pictures maybe?*/}
-                </div>
-
-                {/*Will also add pictures */}
-
-                <button onClick={() => setIsEditing(true)}>Edit Profile</button>
-            </div>
-        );
-    }
-
-    return (
-        <div className="profile-creation">
-            {renderStepContent()}
-            {step > 1 && <button onClick={() => setStep((prev) => prev - 1)}>Back</button>}
-            {step < 9 && <button onClick={() => setStep((prev) => prev + 1)}>Next</button>}
-            {step === 9 && <button onClick={handleSaveProfile}>Save Profile</button>}
+    // update our state to loading
+    this.setState({user: user, state: state.LOADING, profile: null});
+    // Asynchronously get profile from backend
+    const profile = await getProfile(user);
+    // Only update the user prop if we are still looking for that user
+    if (this.state.user !== user) {return;}
+    // update the profile data and state
+    this.setState({user: user, state: state[profile.fail_state??"LOADED"], profile: profile.profile??null});
+  }
+  componentDidUpdate(){
+    this.update();
+  }
+  componentDidMount() {
+    this.update();
+  }
+  renderProfile(editable){
+    let profile = this.state.profile;
+    return <>
+      <div className='grid-background'/>
+      <div className='profile'>
+        <h1>{profile.pref_name??this.props.user.username}</h1>
+        <div className = "basic-info">
+          <h2> Age: {calculate_age(profile.birthday)}</h2>
+          <h2> Relationship Goals: {profile.relationship_goals}</h2>
+          <h2> Gender: {profile.gender}</h2>
+          <h2> Sexual Orientation: {profile.sexual_orientation}</h2>
+          <h2> Birthday: {(new Date(profile.birthday)).toDateString()}</h2>
         </div>
-    );
+        <div className="music-section">
+          <h2> Favorite Genres: {profile.favorite_genres}</h2>
+          <h2> Favorite Artists: {profile.favorite_artists}</h2>
+        </div>
+        {editable&&
+          <button onClick={() => {this.setState({state: state.NOT_CREATED})}}>
+            Edit Profile
+          </button>
+        }
+      </div>
+    </>;
+  }
+  render() {
+    switch (this.state.state){
+      case state.LOADING:
+        return <h1>Loading...</h1>;
+      case state.INVALID_USER:
+        return <h1>User not found.</h1>
+      case state.BLOCKED:
+        return <h1>Unable to view profile. You or this user have blocked the other.</h1>
+      case state.NOT_CREATED:
+        if (this.state.user === null) {return <Navigate to="/profile-creation"/>;}
+        return <h1>This user has not yet created their profile.</h1>
+      default:
+    }
+    // Display Profile:
+    return this.renderProfile(this.state.user === null);
+  }
 }
+const WrappedProfilePage = loggedInPage(withParams(ProfilePage));
+export {WrappedProfilePage as ProfilePage};
+export {default as ProfileCreationPage} from './profile-creation';

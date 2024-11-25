@@ -2,7 +2,7 @@ import React from "react";
 import {Jimp} from "jimp";
 import "./image.css";
 
-export default class ProfileImageElement extends React.Component {
+export class ProfileImageElement extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -63,5 +63,73 @@ export default class ProfileImageElement extends React.Component {
         className="image-display"
       />
     </div>);
+  }
+}
+
+// Crops a image square
+function cropSquare(img){
+  const width = img.bitmap.width;
+  const height = img.bitmap.height;
+  const side = Math.min(width, height);
+  const x = width<height? 0 : (width-side)/2;
+  const y = width<height? (height-side)/2 : 0;
+  return img.crop({
+    w: side-1, h: side-1, x: x, y: y
+  });
+}
+// resizes img to size
+function resize(img, size){
+  return img.resize({w: size, h: size});
+}
+// Limits the number of pixels to res
+function limit(img, res){
+  const factor = Math.sqrt(res/(img.bitmap.width*img.bitmap.height));
+  if (factor > 1) {return img;}
+  return img.resize({w: img.bitmap.width*factor, h: img.bitmap.height*factor});
+}
+
+export class ImageInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleImageUpload = this.handleImageUpload.bind(this);
+  }
+
+  // Uploads the image, does conversion if necessary, calls onChange from props
+  async handleImageUpload(event){
+    event.preventDefault();
+    // convert image into jimpImage
+    const input_data = await event.target.files[0]?.arrayBuffer();
+    let jimpImage = await Jimp.fromBuffer(input_data);
+    // Format image into recognized size and shape
+    if (this.props.cropSquare === true) {
+      jimpImage = cropSquare(jimpImage, this.props.cropSquare);
+    }
+    if (this.props.sideLength != null) {
+      jimpImage = resize(jimpImage, this.props.sideLength);
+    }
+    if (this.props.limitRes != null) {
+      jimpImage = limit(jimpImage, this.props.limitRes);
+    }
+    // Convert to base64 encoding
+    const uploaded_image = await jimpImage.getBase64("image/png");
+    if (this.props.onChange == null) {return;}
+    return this.props.onChange(uploaded_image);
+  }
+
+  render() {
+    return <div className="image-input">
+      <label>
+        <img 
+          src={this.props.value??this.props.fallback}
+          alt={this.props.alt}
+        />
+        <input 
+          type = "file"
+          accept = "image/*"
+          onChange = { this.handleImageUpload }
+          style={{display: 'none'}}
+        />
+      </label>
+    </div>;
   }
 }

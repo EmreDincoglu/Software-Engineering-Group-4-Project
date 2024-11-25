@@ -40,5 +40,4 @@ class SpotifyCallbackPage extends React.Component {
         return (<></>);
     }
 }
-
 export default loggedInPage(withParams(SpotifyCallbackPage));

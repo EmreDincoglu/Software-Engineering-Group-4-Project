@@ -57,6 +57,37 @@ export async function getUser() {
     });
     return {success: result.success, fail_message: result.fail_message, user: result.data};
 }
+// Gets a specific user. returns {success: true, profile} or {success:false, fail_message}
+export async function getProfile(user_id) {
+    let result = await sendRequest({
+        url: 'http://localhost:5000/user/profile/get',
+        method: 'GET',
+        credentials: true,
+        body: {user_id: user_id},
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, invalid_user: true}, "INVALID_USER"],
+            [{success: false, blocked: true}, "BLOCKED"],
+            [{success: false, not_created: true}, "NOT_CREATED"]
+        ],
+        desired_data: "profile"
+    });
+    return {success: result.success, fail_state: result.fail_message, profile: result.data};
+}
+// updates the users profile using profile_data
+export async function updateProfile(profile_data) {
+    let result = await sendRequest({
+        url: 'http://localhost:5000/user/profile/edit',
+        method: 'PUT',
+        credentials: true,
+        body: {data: profile_data},
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+        ],
+        desired_data: false
+    });
+    return {success: result.success, fail_state: result.fail_message};
+}
 /*
     Create a user on express and interpret the result
 */
