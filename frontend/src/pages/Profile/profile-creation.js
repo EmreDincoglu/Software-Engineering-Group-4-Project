@@ -5,10 +5,18 @@ import {loggedInPage} from '../../lib/auth';
 import {MethodCaller} from '../../lib/default';
 import {Navigate} from "react-router-dom";
 import {updateProfile} from '../../lib/backend';
-import { ImageInput } from '../../lib/image';
+import {ImageInput} from '../../lib/image';
 
 // Given an event, return the target value
 function getTargetVal(e) {return e.target.value;}
+// converts a value into the corresponding type with some hard coded rules
+function convert(val, type) {
+  if (type === "text") {return val}
+  if (type === "date") {return (new Date(val)).toISOString().slice(0, 10);}
+  return val;
+}
+// Returns a function which pipes a into b
+function pipe(a, b) {return (val) => b(a(val));}
 
 // Genre Options
 const genre_options = [
@@ -63,7 +71,7 @@ const stepData = [
   }, {
     prompt: <h2>What Is Your Gender Preference</h2>,
     name: "gender_preference",
-    input: "radio",
+    input: "checkbox",
     options: ["Man", "Woman", "Other"]
   }, {
     prompt: <h2>What Are Your Goals For A Relationship</h2>,
@@ -114,17 +122,21 @@ class ProfileCreationPage extends React.Component {
     this.saveProfile = this.saveProfile.bind(this);
     this.findOptions = this.findOptions.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.overwriteImage = this.overwriteImage.bind(this);
-    this.addImage = this.addImage.bind(this);
+    this.replaceList = this.replaceList.bind(this);
+    this.addToList = this.addToList.bind(this);
+    this.removeIndexList = this.removeIndexList.bind(this);
+    this.toggleList = this.toggleList.bind(this);
 
     this.renderNormalInput = this.renderNormalInput.bind(this);
     this.renderRadioInput = this.renderRadioInput.bind(this);
+    this.renderCheckboxInput = this.renderCheckboxInput.bind(this);
     this.renderSelectInput = this.renderSelectInput.bind(this);
     this.renderPhotoSetInput = this.renderPhotoSetInput.bind(this);
     this.renderPhotoInput = this.renderPhotoInput.bind(this);
     this.renderMethods = {
       normal: this.renderNormalInput,
       radio: this.renderRadioInput,
+      checkbox: this.renderCheckboxInput,
       select: this.renderSelectInput,
       photo_set: this.renderPhotoSetInput,
       photo: this.renderPhotoInput
@@ -161,20 +173,39 @@ class ProfileCreationPage extends React.Component {
   convertOptions(options) {
     return options.map((opt) => opt.value);
   }
-  // Returns a method which replaces a specific index of an image list with the input image.
-  overwriteImage(index, name) {
-    return (image) => {
-      let images = this.state.profile[name]; 
-      images[index] = image; 
-      return images;
+  // Returns a method which replaces a specific index of a list with the input element.
+  replaceList(name, index) {
+    return (element) => {
+      let list = this.state.profile[name]; 
+      list[index] = element; 
+      return list;
     }
   }
-  // Returns a method which adds an image to a list.
-  addImage(name) {
-    return (image) => {
-      let images = this.state.profile[name]??[]; 
-      images.push(image);
-      return images;
+  // Returns a method which adds an element to a list.
+  addToList(name, checkDup) {
+    return (element) => {
+      let list = this.state.profile[name]??[]; 
+      if (checkDup && list.includes(element)) {return;}
+      list.push(element);
+      return list;
+    }
+  }
+  // Returns a method which removes a element at index from a list
+  removeIndexList(name, index) {
+    return () => {
+      let list = this.state.profile[name];
+      list = list.splice(index, 1);
+      return list;
+    }
+  }
+  // Returns a method which adds/removes an element from a list
+  toggleList(name) {
+    return (element) => {
+      let list = this.state.profile[name]??[];
+      if (list.includes(element)) {console.log(list + "A" + element); list.splice(list.indexOf(element), 1); return list;}
+      console.log(list + "B" + element);
+      list.push(element);
+      return list;
     }
   }
   // returns a function which sets this.state.profile."[name]" to the value returned by func(event).
@@ -186,7 +217,7 @@ class ProfileCreationPage extends React.Component {
     return <input
       className={config.class??"pc-step-normal-input"}
       type={config.type}
-      value={this.state.profile[config.name]}
+      value={convert(this.state.profile[config.name], config.type)}
       onChange={this.handleChange(config.name, getTargetVal)}
       placeholder={config.placeholder}
     />;
@@ -194,14 +225,31 @@ class ProfileCreationPage extends React.Component {
   // Renders a select one radio input box
   renderRadioInput(config){
     return <div className={config.class??"pc-step-radio-input"}>
-      {config.options.map((option) => (
-        <label key={option}>
+      {config.options.map((option, i) => (
+        <label key={i}>
           <input
             type="radio"
             name={config.name}
             value={option}
-            checked={this.state.profile[config.name] === option}
+            checked={this.state.profile[config.name] === option? true : false}
             onChange={this.handleChange(config.name, getTargetVal)}
+          />
+          {option}
+        </label>
+      ))}
+    </div>;
+  }
+  // Renders a select one radio input box
+  renderCheckboxInput(config){
+    return <div className={config.class??"pc-step-checkbox-input"}>
+      {config.options.map((option, i) => (
+        <label key={i}>
+          <input
+            type="checkbox"
+            name={config.name}
+            value={option}
+            checked={this.state.profile[config.name].includes(option)}
+            onChange={this.handleChange(config.name, pipe(getTargetVal, this.toggleList(config.name)))}
           />
           {option}
         </label>
@@ -225,10 +273,11 @@ class ProfileCreationPage extends React.Component {
     const photoList = this.state.profile[config.name];
     return <div className={config.class??"pc-step-photo-set-input"}>
       {(photoList??[]).map((photo, i) => (<ImageInput
+        key={i}
         value={photo}
         fallback='/default-placeholder.png'
         alt={"Photo " + (i+1)}
-        onChange={this.handleChange(config.name, this.overwriteImage(i, config.name))}
+        onChange={this.handleChange(config.name, this.replaceList(config.name, i))}
         cropSquare={config.cropSquare??null}
         sideLength={config.sideLength??null}
         limitRes={config.limitRes??null}
@@ -236,7 +285,7 @@ class ProfileCreationPage extends React.Component {
       {photoList.length < config.count && <ImageInput
         fallback='/default-placeholder.png'
         alt={"Photo " + (photoList.length+1)}
-        onChange={this.handleChange(config.name, this.addImage(config.name))}
+        onChange={this.handleChange(config.name, this.addToList(config.name))}
         cropSquare={config.cropSquare??null}
         sideLength={config.sideLength??null}
         limitRes={config.limitRes??null}
@@ -292,12 +341,13 @@ class ProfileCreationPage extends React.Component {
     if (this.state.step === steps.save) {
       return <h1>Saving...</h1>;
     }
-    return (
+    return (<>
+      <div className='grid-background'/>
       <div className="profile-creation">
         {this.renderStepContent()}
         {this.renderNavButtons()}
       </div>
-    );
+    </>);
   }
 }
 export default loggedInPage(ProfileCreationPage);
