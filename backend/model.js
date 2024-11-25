@@ -17,10 +17,6 @@ const StringValidationNamespace = {
     alpha_lower: "abcdefghijklmnopqrstuvwxyz",
     alpha_upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     numeric: "0123456789",
-    
-    alphanumeric: StringValidationNamespace.alpha_lower + 
-                  StringValidationNamespace.alpha_upper + 
-                  StringValidationNamespace.numeric,
 
     character_isAlpha: function (char) {
         if (('a' <= char <= 'z') ||
@@ -201,9 +197,8 @@ models.spotify = databases.users.model('SpotifyAccount', schemas.spotify);
 
 // Profile
 schemas.profile = new Schema({
-    user_id: {type: Types.ObjectId, required: true},
+    user: {type: Types.ObjectId, required: true},
     pref_name: String,
-    age: Number,
     birthday: Date,
     gender: String,
     sexual_orientation: String,
@@ -216,8 +211,8 @@ schemas.profile = new Schema({
 });
 schemas.profile.statics = {
     create_new: function(user_id) {
-        return databases.users.model('UserProfile').new({
-            user_id: user_id,
+        return databases.users.model('UserProfile')({
+            user: user_id,
             gender_preference: [],
             favorite_genres: [],
             favorite_artists: [],

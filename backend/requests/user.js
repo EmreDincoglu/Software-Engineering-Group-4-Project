@@ -2,6 +2,7 @@
 import {Profile, SpotifyAccount, User} from '../model.js';
 import {user_request} from '../lib.js';
 import { getSpotifyData } from './spotify.js';
+import { getProfileData } from './profile.js';
 // Export --------------------------------
 export function add_requests(app){
     //user
@@ -50,13 +51,15 @@ const deleteUser = user_request(async (req, res, user) => {
 // Return client side user information for a logged in user
 const getUserData = user_request(async (_, res, user) => {
     const spotify_data = await getSpotifyData(user);
+    const profile_data = await getProfileData(user);
     res.json({
         success: true, 
         user: {
             username: user.username, 
             email: user.email,
             password: user.password,
-            spotify: spotify_data
+            spotify: spotify_data,
+            profile: profile_data
         }
     });
 });

@@ -14,6 +14,10 @@ export function add_requests(app) {
     app.get('/user/spotify/connect/begin', connectSpotify);
     app.post('/user/spotify/connect/finish', finishConnection);
 }
+// given a user, gets the SpotifyAccount model from the db corresponding to it
+export async function getSpotifyData(user) {
+    return SpotifyAccount.findOne({user: user._id});
+}
 // Schema methods ----------------------------
 async function refresh(model) {
     // check to see if token is > 40 minutes old
@@ -44,10 +48,6 @@ async function refresh(model) {
     model.date = Date.now();
     await model.save();
     return {success: true};
-}
-// given a user, gets the SpotifyAccount model from the db corresponding to it
-export async function getSpotifyData(user) {
-    return SpotifyAccount.findOne({user: user._id});
 }
 // Requests ---------------------
 // Starts a connection process to the spotify api
