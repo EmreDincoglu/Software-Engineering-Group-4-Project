@@ -3,24 +3,29 @@ import {createRoot} from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 
-import LoginPage from './pages/Login/login';
-import {RootPage, AboutPage} from './pages/Root/root';
-import HomePage from './pages/Home/home'
-import ProfilePage from './pages/Profile/profile'
-import SpotifyCallbackPage from './pages/SpotifyAuthCallback/spotify';
+import {LoginPage, RootPage, AboutPage, HomePage, AccountPage,SpotifyCallbackPage, ProfilePage, ProfileCreationPage, Messages, MutualFollowers} from './pages/default';
+import { AuthProvider } from './lib/auth';
 
 export default function App() {return (
+    <React.StrictMode>
+    <AuthProvider>
     <BrowserRouter>
         <Routes>
             <Route path="/" element={<RootPage/>}>
                 <Route index element={<AboutPage/>} />
                 <Route path="login" element={<LoginPage/>}/>
                 <Route path="home" element={<HomePage/>}/>
+                <Route path="account" element={<AccountPage/>}/>
                 <Route path="profile" element={<ProfilePage/>}/>
+                <Route path="profile-creation" element={<ProfileCreationPage/>}/>
+                <Route path="Messager" element={<Messages/>}/>
+                <Route path="messages" element={<MutualFollowers/>}/>
             </Route>
             <Route path="/spotifyAuthCallback" element={<SpotifyCallbackPage/>}/>
         </Routes>
     </BrowserRouter>
+    </AuthProvider>
+    </React.StrictMode>
 );}
 
 const container = document.getElementById('root');

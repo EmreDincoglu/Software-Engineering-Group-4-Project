@@ -1,0 +1,10 @@
+.image-element img{
+    width: 100%;
+    border-radius: 50%;
+    font-size: 100%;
+    cursor: pointer;
+    vertical-align: middle;
+}
+.image-element input{
+    display: none;
+}

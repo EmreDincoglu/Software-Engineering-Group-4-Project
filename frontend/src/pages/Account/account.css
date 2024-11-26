@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
+.account-block{
+    font-family: 'Inconsolata';
+    font-size: 100%;
+    width: min-content;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: top;
+    margin-top: 3em;
+}
+
+/*
+    Basic account fields like username email and password
+*/
+
+.account-info{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    width: 100%;
+    min-width: 25em;
+    padding: 1em;
+    border: 1px solid white;
+    border-radius: 1em;
+}
+.account-info .section-title{
+    text-decoration: underline;
+    text-align: center;
+}
+
+/*
+    Css for each editable account field
+*/
+
+.account-field {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    padding: 0.3em;
+    background-color: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgb(126, 126, 126);
+    border-radius: 0.3em;
+}
+
+.account-field-label {
+    text-align: right;
+    width: 6em;
+    padding-right: 1em;
+}
+
+.account-field-value {
+    text-align: right;
+    flex: auto;
+}
+span.account-field-value{
+    font-weight: bold;
+}
+input.account-field-value{
+    background: none;
+    color: white;
+    border: 1px solid white;
+    border-radius: 0.3em;
+    padding-right: 0.5em;
+}
+
+.account-field-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+    width: 3em;
+    margin-left: 1em;
+}
+.account-field-buttons button{
+    background: none;
+    font-weight: bold;
+    color: white;
+    border: none;
+    width: 100%;
+    text-align: center;
+}
+.account-field-buttons button#with-border{
+    border: 1px solid white;
+    border-radius: 1em;
+}
+.account-field-buttons button:hover{
+    background-color: hotpink;
+    border: none;
+    border-radius: 0.5em;
+    cursor: pointer;
+}
+
+/*
+    Account Buttons
+*/
+
+.account-buttons{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+}
+.account-buttons button:hover{
+    cursor: pointer;
+}
+.account-buttons .update-profile{
+    background: black;
+    color: lawngreen;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0.25em;
+}
+.account-buttons .logout{
+    background: black;
+    color: hotpink;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0.25em;
+}
+.account-buttons .delete-profile{
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 110%;
+    padding: 0.25em;
+}
+
+/*
+    Spotify Section
+*/
+.spotify-info{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    width: 100%;
+    min-width: 25em;
+    padding: 1em;
+    border: 1px solid white;
+    border-radius: 1em;
+}
+.spotify-info .section-title{
+    text-decoration: underline;
+    text-align: center;
+}
+.spotify-link-button{
+    width: auto;
+    background: lawngreen;
+    color: black;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-weight: bolder;
+    font-size: 110%;
+    padding: 0.25em;
+} 
+.spotify-link-button:hover{
+    cursor: pointer;
+    background: hotpink;
+    color: white;
+}

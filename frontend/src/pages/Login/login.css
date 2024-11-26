@@ -1,13 +1,15 @@
 .login-body{
     width: 420px;
-    box-sizing: border-box;
-    background: black;
+    background-color: black;
     border: 5px solid hotpink;
     border-radius: 40px;
     padding: 40px;
     color: white;
     text-align: center;
+    margin: auto;
     margin-top: 2.25vw;
+    z-index: 5;
+    position: relative;
 }
 .login-body h1 {
     font-size: 64px;
@@ -32,7 +34,7 @@
     font-size: 16px;
     font-weight: 400;
 }
-.register-link text {
+.register-link span {
     color: limegreen;
     font-size: 16px;
     font-weight: 400;
@@ -44,7 +46,7 @@
     font-size: 16px;
     font-weight: 400;
 }
-.login-link text {
+.login-link span {
     color: limegreen;
     font-size: 16px;
     font-weight: 400;
@@ -63,7 +65,7 @@
     align-items: center;
     gap: 15px;
 }
-.forgot-password text {
+.forgot-password span {
     color: #7cfc00;
     font-size: 16px;
     font-weight: 400;
@@ -91,3 +93,4 @@
 .input-box:focus{
     border-color: hotpink;
 }
+
