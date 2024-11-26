@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './index.css';
 
-import {LoginPage, RootPage, AboutPage, HomePage, AccountPage, ProfilePage, SpotifyCallbackPage, ProfileCreationPage} from './pages/default';
+import {LoginPage, RootPage, AboutPage, HomePage, AccountPage,SpotifyCallbackPage, ProfilePage, ProfileCreationPage, Messages, MutualFollowers} from './pages/default';
 import { AuthProvider } from './lib/auth';
 
 export default function App() {return (
@@ -18,6 +18,8 @@ export default function App() {return (
                 <Route path="account" element={<AccountPage/>}/>
                 <Route path="profile" element={<ProfilePage/>}/>
                 <Route path="profile-creation" element={<ProfileCreationPage/>}/>
+                <Route path="Messager" element={<Messages/>}/>
+                <Route path="messages" element={<MutualFollowers/>}/>
             </Route>
             <Route path="/spotifyAuthCallback" element={<SpotifyCallbackPage/>}/>
         </Routes>

@@ -12,6 +12,8 @@ export function add_requests(app){
     app.put('/user/update', updateAccount);
     app.post('/user/block', blockUser);
     app.post('/user/follow', followUser);
+    app.get('user/follower-following', getFollowersAndFollowing);
+    app.post('/user/unfollow', unfollowUser);
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
@@ -101,5 +103,42 @@ const followUser = user_request(async(req, res, user) => {
     //make sure one doesnt block the other
     if(await checkBlocked(user, followedUser)) {res.json({success: false, blocked: true}); return;}
     // Follow the user here. Maybe make it a toggle like the like post function?
+    if (!user.following.includes(followedUser._id)) {
+        user.following.push(followedUser._id);
+        followedUser.followers.push(user._id);
+        await user.save();
+        await followedUser.save();
+        res.json({ success: true });
+    } else {
+        res.json({ success: false, already_following: true });
+    }
+});
 
+const unfollowUser = user_request(async (req, res, user) => {
+    const unfollowedUser = await User.findById(req.body.user_id);
+    if (!unfollowedUser) { res.json({ success: false, invalid_user: true }); return; }
+
+    // Remove from following and followers lists
+    user.following = user.following.filter(id => !id.equals(unfollowedUser._id));
+    unfollowedUser.followers = unfollowedUser.followers.filter(id => !id.equals(user._id));
+
+    await user.save();
+    await unfollowedUser.save();
+
+    res.json({ success: true });
+});
+
+const getFollowersAndFollowing = user_request(async(req,res,user) => {
+    try{
+        const followers = await User.find({ _id: { $in: user.follows}})
+        const following = await User.find({ _id: {$in:user.followed}})
+        res.json({
+            success: true,
+            followers,
+            following
+        })
+    }catch(error){
+        console.error("error fetching conversations", error);
+        res.status(500).json({success: false, error: "Server error"});
+    }
 });

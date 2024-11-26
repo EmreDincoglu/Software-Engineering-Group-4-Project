@@ -99,9 +99,10 @@ schemas.user = new Schema({
         sid: Number,
         date: Date,
     },
-    // Blocked and followed user _ids
+    // Blocked, followers, and following user _ids
     blocked: [Types.ObjectId],
-    followed: [Types.ObjectId],
+    following: [Types.ObjectId],
+    followers: [Types.ObjectId],
     // Owned post _ids
     posts: [Types.ObjectId],
     // Liked post _ids
@@ -178,7 +179,8 @@ schemas.user.statics = {
             email: data.email.toLowerCase(),
             password: data.password,
             blocked: [],
-            followed: [],
+            following: [],
+            followers: [],
             posts: [],
             liked: [],
         });
