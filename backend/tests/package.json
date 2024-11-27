@@ -2,7 +2,7 @@
     "name": "heart-beatz-backend--test",
     "version": "0.1.0",
     "scripts": {
-        "test": "mocha ./demo.js",
+        "test": "mocha ./integration_tests/*.js",
         "test_mocks": "mocha ./Mocks/test/*.js"
     },
     "type": "module",

@@ -1,5 +1,5 @@
-const { mock_Collection}  = await import("./mock_Collection.js");
-const { mock_Schema } = await import ("./mock_Schema.js");
+import { mock_Collection} from "./mock_Collection.js";
+import { mock_Schema } from "./mock_Schema.js";
 
 
 const ModelGeneratorHelperFunction = {
@@ -10,7 +10,8 @@ const ModelGeneratorHelperFunction = {
         }
         
         for (let prop in properties_JSON) { 
-            if (required_prop.includes(prop)) required_prop.splice(required_prop.indexOf(prop), 1);
+            if (required_prop.includes(prop)) 
+                required_prop.splice(required_prop.indexOf(prop), 1);
             this[prop] = properties_JSON[prop]; 
         }
 
@@ -18,55 +19,70 @@ const ModelGeneratorHelperFunction = {
     },
 
     set_methods: function (methods_JSON) {
-        for (let method in methods_JSON) this[method] = methods_JSON[method];
+        for (let method in methods_JSON) 
+            this[method] = methods_JSON[method];
     },
 
     set_statics: function (statics_JSON) {
-        for (let static_method in statics_JSON) this[static_method] = statics_JSON[static_method];
+        for (let static_method in statics_JSON) 
+            this[static_method] = statics_JSON[static_method];
     }
 };
+
+const id_generator = function *() {
+    let i = 0;
+    while(true) yield i++;
+}
 
 function mock_Model_Generator(collection, schema) {
 
 const mock_Model = class {
     static #collection = collection;
+    static #id_generator = id_generator();
 
-    findJSON(JSON) {
-        console.log('\t\t-- findJSON called');
+    #_id = mock_Model.#id_generator.next().value;
+
+    constructor(properties_JSON) {
+        const missing_properties = ModelGeneratorHelperFunction.set_properties.call(this, schema, properties_JSON);
+        if (missing_properties.length == 0) throw new Error("missing properties");
+    }
+
+    static findJSON(JSON) {
+        //console.log('\t\t-- findJSON called');
         return new Promise((resolve, reject) => {
             const element = collection.findMatchingJSON(JSON);
             if (element.index == null) { 
-                reject('Error: No matching element found');
-                return; 
+                resolve(null);
             }
             resolve(element.element);
         });
     }
-    findById(id) {
-        console.log('\t-- findById called');
+    static findById(id) {
+        //console.log('\t-- findById called');
         return mock_Model.findJSON({_id: id});
     }
-    findOne(JSON) {
-        console.log('\t-- findOne called');
+    static findOne(JSON) {
+        //console.log('\t-- findOne called');
         return mock_Model.findJSON(JSON);
     }
     save() {
-        console.log('\t-- save called');
+        //console.log('\t-- save called');
         return new Promise((resolve, reject) => {
-            let success = collection.save(this, {_id: model._id});
+            let success = collection.save(this, {_id: this._id});
             if (!success) {
                 reject('Failed to save model');
                 return; 
             }
-            resolve(model);
+            resolve(this);
         });
     }
+
+    get id() { return this.#_id; }
+    get _id() { return this.#_id; }
+
+    static get collection() { return mock_Model.#collection; }
 };
 
-mock_Model.prototype.constructor = function(properties_JSON) {
-    const missing_properties = ModelGeneratorHelperFunction.set_properties.call(this, schema, properties_JSON);
-    if (missing_properties.length == 0) throw new Error("missing properties");
-}
 ModelGeneratorHelperFunction.set_methods.call(mock_Model.prototype, schema.methods);
 ModelGeneratorHelperFunction.set_statics.call(mock_Model, schema.statics);
 

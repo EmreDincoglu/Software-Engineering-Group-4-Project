@@ -8,10 +8,10 @@ const databaseConnections = {
     options: 'retryWrites=true&w=majority&appName=Cluster0',
 
     getURI: (dbName) => {
-        return  this.connectionString + '@' + 
-                this.clusterName + '/' + 
+        return  databaseConnections.connectionString + '@' + 
+                databaseConnections.clusterName + '/' + 
                 dbName + '?' + 
-                this.options;
+                databaseConnections.options;
     },
 };
 const databases = {

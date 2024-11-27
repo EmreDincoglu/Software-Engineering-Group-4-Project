@@ -3,41 +3,33 @@ import { expect } from "chai";
 import request from "supertest-as-promised";
 import express from "express";
 
-console.log("running tests");
+import { mock_Connection } from "../Mocks/mock_Connection.js";
+import { mock_Model_Generator } from "../Mocks/mock_Model.js";
+import { mock_Collection } from "../Mocks/mock_Collection.js";
+import { mock_Schema } from "../Mocks/mock_Schema.js";  
+
+import mongoose from "mongoose";
 
 describe('createUser', () => {
-    let userDatabase;
-    let mongoose;
     let app;
 
     before(async () => {
-        console.log('1');
-
-        const { mock_Database } = await import("../Mocks/mock_Database.js");
-        const { mock_Model } = await import("../Mocks/mock_Model.js");
-
-        console.log("1.5");
-        userDatabase = new mock_Database();
-        console.log('2');
-
-        const model = await import("../../model.js");
-        sinon.stub(model.User, 'findOne').callsFake(() => {
-            return mock_Model.findOne(this, mock_Database);
+        console.log(1);
+        sinon.stub(mongoose, "createConnection").callsFake((...args) => {
+            return new mock_Connection();
         });
-        sinon.stub(model.User, 'findById').callsFake(() => {
-            return mock_Model.findById(this, userDatabase);
+        console.log(2);
+        sinon.stub(mongoose, 'Schema').callsFake((...args) => {
+            return new mock_Schema(...args);
         });
-        sinon.stub(model.User.prototype, 'save').callsFake(() => {
-            return mock_Model.save(this, userDatabase);
-        });
-
-        mongoose = await import("../../mongoose.js");
+        console.log(3);
+        const { add_requests } = await import("../../requests/default.js");
 
         app = express();
         
-        app.post('/createUser', mongoose.createUser);
-        app.get('/getUserData', mongoose.getUserData);
-    })
+        add_requests(app);
+    });
+
     it('creating a user [success]', async () => {
         let req = {}; req.body = {
             username: 'user1',
@@ -50,6 +42,7 @@ describe('createUser', () => {
         expect(resp.data.duplicate_email).to.be.false;
         expect(resp.data.duplicate_username).to.be.false;
     });
+
     it('creating a user [unsuccess]', async () => {
         let req1 = {}; req1.body = {
             username: 'user2',
@@ -92,6 +85,7 @@ describe('createUser', () => {
         expect(resp4.data.duplicate_email).to.be.true;
         expect(resp4.data.duplicate_username).to.be.true;
     });
+
     after(async () => {
         sinon.restore();
     });

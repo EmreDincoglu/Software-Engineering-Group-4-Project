@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { factory } from "factory-girl";
 
+const { mock_Collection } = await import("../mock_Collection.js");
+
 function check_JSON_attributes_match(object, JSON) {
     for (let attribute in JSON) {
         if (object[attribute] !== JSON[attribute]) { return false; }
@@ -30,7 +32,6 @@ describe("mock_Collection", () => {
         let collection;
         
         before(async () => {
-            const { mock_Collection } = await import("../mock_Collection.js");
             collection = new mock_Collection();
         });
 
@@ -163,16 +164,16 @@ describe("mock_Collection", () => {
         let collection;
         
         before(async () => {
-            const { mock_Collection } = await import("../mock_Collection.js");
             collection = new mock_Collection();
 
             // add a bunch of elements
-            factory.define("el", Object, () => { return {
-                // n is 1-indexed
-                name: factory.sequence("el.name", (n) => `e${n-1}`),
-                __v: "1.0",
-                index: factory.sequence("el.index", (n) => n-1)
-            };
+            factory.define("el", Object, () => { 
+                return {    
+                    // n is 1-indexed
+                    name: factory.sequence("el.name", (n) => `e${n-1}`),
+                    __v: "1.0",
+                    index: factory.sequence("el.index", (n) => n-1)
+                };
             });
 
             for (let i = 0; i < 100; i++) {

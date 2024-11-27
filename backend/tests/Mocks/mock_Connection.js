@@ -1,5 +1,5 @@
-const { mock_Collection } = await import ("./mock_Collection.js");
-const { mock_Model_Generator } = await import ("./mock_Model.js");
+import { mock_Collection } from "./mock_Collection.js";
+import { mock_Model_Generator } from "./mock_Model.js";
 
 class mock_Connection {
     #database = {};
