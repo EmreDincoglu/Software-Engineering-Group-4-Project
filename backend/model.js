@@ -2,13 +2,26 @@
 import { createConnection, Schema, Types } from 'mongoose';
 import moment from 'moment';
 // Database definition
+const databaseConnections = {
+    connectionString: 'mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW',
+    clusterName: 'cluster0.17oni.mongodb.net',
+    options: 'retryWrites=true&w=majority&appName=Cluster0',
+
+    getURI: (dbName) => {
+        return  this.connectionString + '@' + 
+                this.clusterName + '/' + 
+                dbName + '?' + 
+                this.options;
+    },
+};
 const databases = {
-    users: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
-    messages: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0'),
-    posts: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userPosts?retryWrites=true&w=majority&appName=Cluster0'),
-    liked: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userLiked?retryWrites=true&w=majority&appName=Cluster0'),
-    blocked: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userBlocked?retryWrites=true&w=majority&appName=Cluster0'),
-    follows: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userFriends?retryWrites=true&w=majority&appName=Cluster0')
+    // <connectionString>@<clusterName>/<database name>?<options>
+    users: createConnection(databaseConnections.getURI('HeartBeatz')),
+    messages: createConnection(databaseConnections.getURI('Messages')),
+    posts: createConnection(databaseConnections.getURI('userPosts')),
+    liked: createConnection(databaseConnections.getURI('userLiked')),
+    blocked: createConnection(databaseConnections.getURI('userBlocked')),
+    follows: createConnection(databaseConnections.getURI('userFriends')),
 };
 
 // Helper Methods

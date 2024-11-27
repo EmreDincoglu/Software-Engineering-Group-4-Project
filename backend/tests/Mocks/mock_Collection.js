@@ -6,36 +6,36 @@ function check_JSON_attributes_match(object, JSON) {
 }
 
 
-class mock_Database {
-    #database = [];
+class mock_Collection {
+    collection = [];
 
     constructor() {
         // clear database
-        this.#database.length = 0;
+        this.collection.length = 0;
     }
 
     print() {
-        console.log("\t\t -- database [mock] --");
+        console.log("\t\t -- collection [mock] --");
         console.log(`\t\t\t >>> length :: ${this.length()} <<<`);
-        this.#database.forEach((element, index) => {
+        this.collection.forEach((element, index) => {
             let element_JSON_str = Object.entries(element).map(([key, value]) => `${key} : ${value}`);
             console.log(`\t\t > ${index} :: { ${element_JSON_str.join(", ")} }`);
         });
     }
 
     length() {
-        return this.#database.length;
+        return this.collection.length;
     }
 
     at(index) {
         if (index == null || index < 0 || index >= this.length()) {
             return null;
         }
-        return this.#database.at(index);
+        return this.collection.at(index);
     }
 
     contains(element) {
-        let index = this.#database.findIndex((_element) => _element === element);
+        let index = this.collection.findIndex((_element) => _element === element);
 
         if (index == null || index < 0 || index > this.length()) { return false; }
         return true;
@@ -46,11 +46,11 @@ class mock_Database {
         let [element, index] = [null, null];
 
         // find element matching required JSON attributes
-        for (let i = 0; i < this.#database.length; i++) {
+        for (let i = 0; i < this.collection.length; i++) {
             // elemebt found
-            if (check_JSON_attributes_match(this.#database[i], JSON)) {
+            if (check_JSON_attributes_match(this.collection[i], JSON)) {
                 index = i;
-                element = this.#database[i];
+                element = this.collection[i];
                 break;
             }
         }
@@ -64,7 +64,7 @@ class mock_Database {
 
     save(element, identifier) {
         // find index of element
-        let index = this.#database.findIndex((_element) => check_JSON_attributes_match(_element, identifier));
+        let index = this.collection.findIndex((_element) => check_JSON_attributes_match(_element, identifier));
 
         if (index == null || index < 0 || index >= this.length()) {
             this.push(element);
@@ -74,13 +74,13 @@ class mock_Database {
     }
 
     push(element) {
-        this.#database.push(element);
+        this.collection.push(element);
         return element;
     }
 
     delete(element) {
         // find index of element
-        let index = this.#database.findIndex((_element) => _element === element);
+        let index = this.collection.findIndex((_element) => _element === element);
 
         return this.deleteIndex(index);
     }
@@ -91,13 +91,13 @@ class mock_Database {
         }
 
         // remove from database
-        this.#database.splice(index, 1);
+        this.collection.splice(index, 1);
         return true;
     }
 
     update(element, updated_element) {
         // find index of element
-        let index = this.#database.findIndex((_element) => _element == element);
+        let index = this.collection.findIndex((_element) => _element == element);
         return this.updateIndex(index, updated_element);
     }
     updateIndex(index, updated_element) {
@@ -107,11 +107,11 @@ class mock_Database {
         }
 
         // update element
-        this.#database[index] = updated_element;
+        this.collection[index] = updated_element;
         return true;
     }
 }
 
 export {
-    mock_Database
+    mock_Collection as mock_Collection,
 };

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { factory } from "factory-girl";
 
+
 describe("mock_Model", async () => {
 
     const { User } = await import("../../../model.js");
@@ -12,13 +13,15 @@ describe("mock_Model", async () => {
         let database;
 
         before(async () => {
-            const { mock_Database } = await import("../mock_Database.js");
-            database = new mock_Database();
+            const { mock_Collection } = await import("../mock_Collection.js");
+            database = new mock_Collection();
         });
 
         it("save", async () => {
             for (let i = 0; i < 100; i++) {
-                
+                const new_user = new User({
+                    
+                });
             }
         });
     });
