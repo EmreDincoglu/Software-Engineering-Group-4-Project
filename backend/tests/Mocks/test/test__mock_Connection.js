@@ -68,14 +68,12 @@ describe("mock_Connection", async () => {
 
     let other_model1, other_model2, other_model3;
     it("getting models", () => {
-        other_model1 = connection.model("model1", schema1);
+        other_model1 = connection.model("model1");
         expect(other_model1).to.equal(model1);
-
         
-        other_model2 = connection.model("model2", schema2);
-        expect(other_model2).to.equal(model2);
+        expect(connection.model("model2")).to.equal(model2);
         
-        other_model3 = connection.model("model3", schema3);
+        other_model3 = connection.model("model3");
         expect(other_model3).to.equal(model3);
     });
 });

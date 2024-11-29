@@ -9,13 +9,20 @@ class mock_Connection {
     }
 
     model(name, schema) {
-        if (name in this.#database) return this.#database[name];
+        if (name in this.#database) { 
+            return this.#database[name]; 
+        }
 
         const newCollection = new mock_Collection();
         const new_mock_Model = mock_Model_Generator(newCollection, schema);
+
+        Object.defineProperty(new_mock_Model, 'name', { value: 'mock_' + name });
+
         this.#database[name] = new_mock_Model;
         return this.#database[name];
     }
+
+    get database() { return this.#database; }
 };
 
 export {

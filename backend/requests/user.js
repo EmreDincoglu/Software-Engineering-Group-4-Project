@@ -25,16 +25,21 @@ async function checkBlocked(userA, userB) {
 const createUser = async (req, res) => {
     // Create the new user
     const newUser = User.create_new(req.body);
+
     // create return object and check for email and username uniqueness
     let resp_data = {};
     resp_data.duplicate_email = !(await newUser.checkUniqueEmail());
     resp_data.duplicate_username = !(await newUser.checkUniqueUsername());
     resp_data.success = !resp_data.duplicate_email && !resp_data.duplicate_username;
+
     if (!resp_data.success) {res.json(resp_data); return;}
+
     // put the user into the database. technically not required since generateSession also saves the user
     await newUser.save();
+
     // Create a login session for the user, stores cookies in res
     await newUser.generateSession(res);
+
     // return success
     res.send(resp_data);
 };

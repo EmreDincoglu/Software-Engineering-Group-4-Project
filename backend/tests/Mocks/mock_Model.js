@@ -6,16 +6,37 @@ const ModelGeneratorHelperFunction = {
     set_properties: function (schema, properties_JSON) {
         let required_prop = [];
         for (let prop in schema.properties) {
-            if (schema.properties[prop].required === true) required_prop.push(prop);
+            if (schema.properties[prop].hasOwnProperty("required") && 
+                schema.properties[prop].required === true) 
+                
+                required_prop.push(prop);
         }
         
         for (let prop in properties_JSON) { 
-            if (required_prop.includes(prop)) 
-                required_prop.splice(required_prop.indexOf(prop), 1);
+            if (required_prop.includes(prop)) required_prop.splice(required_prop.indexOf(prop), 1);
             this[prop] = properties_JSON[prop]; 
         }
 
         return {missing_properties: required_prop};
+    },
+
+    apply_properties: function (properties_JSON) {
+        function apply_properties_to(instance, properties) {
+            for (let property_name in properties) {
+                if (property_name == "type" || property_name == "required") continue;
+
+                const property = properties[property_name];
+                instance[property_name] = Array.isArray(property) ? [] : {};
+
+                if (typeof property === "object" && 
+                    property !== null &&
+                    property.constructor === Object
+                ) apply_properties_to(instance[property_name], property);
+            }
+            return instance;
+        }
+
+        apply_properties_to(this, properties_JSON);
     },
 
     set_methods: function (methods_JSON) {
@@ -26,7 +47,7 @@ const ModelGeneratorHelperFunction = {
     set_statics: function (statics_JSON) {
         for (let static_method in statics_JSON) 
             this[static_method] = statics_JSON[static_method];
-    }
+    },
 };
 
 const id_generator = function *() {
@@ -43,12 +64,12 @@ const mock_Model = class {
     #_id = mock_Model.#id_generator.next().value;
 
     constructor(properties_JSON) {
-        const missing_properties = ModelGeneratorHelperFunction.set_properties.call(this, schema, properties_JSON);
-        if (missing_properties.length == 0) throw new Error("missing properties");
+        ModelGeneratorHelperFunction.apply_properties.call(this, schema.properties);
+        const missing_properties = ModelGeneratorHelperFunction.set_properties.call(this, schema, properties_JSON).missing_properties;
+        if (missing_properties.length != 0) throw new Error("missing properties");
     }
 
     static findJSON(JSON) {
-        //console.log('\t\t-- findJSON called');
         return new Promise((resolve, reject) => {
             const element = collection.findMatchingJSON(JSON);
             if (element.index == null) { 
@@ -58,15 +79,12 @@ const mock_Model = class {
         });
     }
     static findById(id) {
-        //console.log('\t-- findById called');
         return mock_Model.findJSON({_id: id});
     }
     static findOne(JSON) {
-        //console.log('\t-- findOne called');
         return mock_Model.findJSON(JSON);
     }
     save() {
-        //console.log('\t-- save called');
         return new Promise((resolve, reject) => {
             let success = collection.save(this, {_id: this._id});
             if (!success) {

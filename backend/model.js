@@ -1,6 +1,11 @@
 // Imports
-import { createConnection, Schema, Types } from 'mongoose';
+import mongoose from 'mongoose';
 import moment from 'moment';
+
+const createConnection = mongoose.createConnection;
+const Schema = mongoose.Schema;
+const Types = mongoose.Types;
+
 // Database definition
 const databaseConnections = {
     connectionString: 'mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW',
@@ -186,7 +191,7 @@ schemas.user.methods = {
 };
 schemas.user.statics = {
     create_new: function(data) {
-        return databases.users.model('UserAccount')({
+        return new (databases.users.model('UserAccount'))({
             username: data.username,
             _lc_uname: data.username.toLowerCase(),
             email: data.email.toLowerCase(),
@@ -197,7 +202,7 @@ schemas.user.statics = {
             posts: [],
             liked: [],
         });
-    }
+    },
 };
 models.user = databases.users.model('UserAccount', schemas.user);
 
@@ -226,7 +231,7 @@ schemas.profile = new Schema({
 });
 schemas.profile.statics = {
     create_new: function(user_id) {
-        return databases.users.model('UserProfile')({
+        return new databases.users.model('UserProfile')({
             user: user_id,
             gender_preference: [],
             favorite_genres: [],
@@ -245,6 +250,7 @@ schemas.message = new Schema({
     recipient: { type: String, required: true }
 });
 
+
 // Posts
 schemas.post = new Schema({
     user_ID: {type: Types.ObjectId, required: true},
@@ -255,6 +261,7 @@ schemas.post = new Schema({
     post_image: String
 });
 models.post = databases.posts.model('Post', schemas.post);
+
 
 // Exports
 export {databases, schemas, models};
