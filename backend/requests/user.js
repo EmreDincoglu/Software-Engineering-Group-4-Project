@@ -12,8 +12,8 @@ export function add_requests(app){
     app.put('/user/update', updateAccount);
     app.post('/user/block', blockUser);
     app.post('/user/follow', followUser);
-    app.get('user/follower-following', getFollowersAndFollowing);
     app.post('/user/unfollow', unfollowUser);
+    app.get('user/follower-following', getFollowersAndFollowing);
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
@@ -62,7 +62,8 @@ const getUserData = user_request(async (_, res, user) => {
             password: user.password,
             spotify: spotify_data,
             profile: profile_data,
-            followed: user.followed,
+            following: user.following,
+            followers: user.followers,
             blocked: user.blocked,
             posts: user.posts,
             liked: user.liked
@@ -115,7 +116,6 @@ const followUser = user_request(async(req, res, user) => {
     //find user and see if they exists
     const followedUser = await User.findById(req.body.user_id);
     if (!followedUser) {res.json({success: false, invalid_user: true}); return;}
-    //make sure one doesnt block the other
     if(await checkBlocked(user, followedUser)) {res.json({success: false, blocked: true}); return;}
     // Follow the user here. Maybe make it a toggle like the like post function?
     if (!user.following.includes(followedUser._id)) {

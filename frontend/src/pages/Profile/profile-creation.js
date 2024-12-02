@@ -310,6 +310,16 @@ class ProfileCreationPage extends React.Component {
   }
   // Renders the step form based on the step state
   renderStepContent(){
+    if (this.props.user.spotify == null && (this.state.step === steps.artists || this.state.step === steps.genres)) {
+      return <div className='pc-step'>
+        <div className='pc-step-prompt'>
+          {stepData[this.state.step].prompt}
+        </div>
+        <div className='pc-step-input'>
+          No Spotify Account found. Go to the account page to connect your Spotify Account.
+        </div>
+      </div>
+    }
     return <div className='pc-step'>
       <div className='pc-step-prompt'>
         {stepData[this.state.step].prompt}

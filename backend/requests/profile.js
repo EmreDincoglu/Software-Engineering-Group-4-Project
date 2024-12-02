@@ -12,7 +12,8 @@ export async function getProfileData(user) {
     if (profile==null) {return null};
     profile = await profile.getData();
     profile.username = user.username;
-    profile.followed = user.followed;
+    profile.following = user.following;
+    profile.followers = user.followers;
     profile.blocked = user.blocked;
     profile.posts = user.posts;
     profile.liked = user.liked;

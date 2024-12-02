@@ -87,6 +87,36 @@ export async function updateProfile(profile_data) {
     });
     return {success: result.success, fail_state: result.fail_message};
 }
+export async function followUser(user_id) {
+    return await sendRequest({
+        url: 'http://localhost:5000/user/follow',
+        method: 'POST',
+        credentials: true,
+        body: {user_id: user_id},
+        fail_conds: [],
+        desired_data: false
+    });
+}
+export async function unfollowUser(user_id) {
+    return await sendRequest({
+        url: 'http://localhost:5000/user/unfollow',
+        method: 'POST',
+        credentials: true,
+        body: {user_id: user_id},
+        fail_conds: [],
+        desired_data: false
+    });
+}
+export async function blockUser(user_id) {
+    return await sendRequest({
+        url: 'http://localhost:5000/user/block',
+        method: 'POST',
+        credentials: true,
+        body: {user_id: user_id},
+        fail_conds: [],
+        desired_data: false
+    });
+}
 /*
     Create a user on express and interpret the result
 */

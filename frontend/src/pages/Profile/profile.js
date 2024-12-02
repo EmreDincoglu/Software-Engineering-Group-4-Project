@@ -2,8 +2,8 @@ import React from 'react';
 import {Link, Navigate} from "react-router-dom";
 import moment from 'moment';
 import {loggedInPage} from '../../lib/auth';
-import {withParams} from '../../lib/default';
-import {getProfile} from '../../lib/backend';
+import {withParams, withNavigate} from '../../lib/default';
+import {getProfile, followUser as followUserBackend, blockUser as blockUserBackend, unfollowUser as unfollowUserBackend} from '../../lib/backend';
 import './profile.css';
 import { UserDisplay } from '../../lib/user';
 import { PostDisplay } from '../../lib/post';
@@ -32,7 +32,7 @@ function get_birthday_string(birthdate){
 
 // Get a string for a list of items, returns null if list is [] or null
 function get_list_string(list) {
-  if (list == null || list == []) {return null;}
+  if (list == null || list.length === 0) {return null;}
   return list.join(", ");
 }
 
@@ -58,7 +58,11 @@ class ProfilePage extends React.Component {
       goToCreate: false
     };
     this.update = this.update.bind(this);
-    this.renderFollowList = this.renderFollowList.bind(this);
+    this.followUser = this.followUser.bind(this);
+    this.blockUser = this.blockUser.bind(this);
+    this.messageUser = this.messageUser.bind(this);
+    this.renderFollowingList = this.renderFollowingList.bind(this);
+    this.renderFollowerList = this.renderFollowerList.bind(this);
     this.renderPosts = this.renderPosts.bind(this);
     this.renderProfilePictures = this.renderProfilePictures.bind(this);
     this.renderProfile = this.renderProfile.bind(this);
@@ -95,10 +99,36 @@ class ProfilePage extends React.Component {
   componentDidMount() {
     this.update();
   }
-  renderFollowList(){
+  async followUser(){
+    if (this.props.user.following.includes(this.state.user)) {
+      await unfollowUserBackend(this.state.user);
+    }else {
+      await followUserBackend(this.state.user);
+    }
+    this.props.updateUser();
+  }
+  async blockUser(){
+    await blockUserBackend(this.state.user);
+    this.props.updateUser();
+  }
+  async messageUser(){
+    this.props.navigate("/message?user=" + this.state.user);
+  }
+  renderFollowingList(){
     return <div className='profile-following'>
       <h1>Followed Users</h1>
-      {(this.state.profile.followed??[]).map((id) => (<UserDisplay 
+      {(this.state.profile.following??[]).map((id) => (<UserDisplay 
+        user={id}
+        alt="User"
+        fallback="/default_user.png"
+        clickable={true}
+      />))}
+    </div>;
+  }
+  renderFollowerList(){
+    return <div className='profile-following'>
+      <h1>Followers</h1>
+      {(this.state.profile.followers??[]).map((id) => (<UserDisplay 
         user={id}
         alt="User"
         fallback="/default_user.png"
@@ -167,9 +197,11 @@ class ProfilePage extends React.Component {
             onClick={() => {this.setState({goToCreate: true})}}
           >Edit Profile</button>
         ) : (<>
-          <button>Follow User</button>
-          <button id="block">Block User</button>
-          <button id="message">Message User</button>
+          <button onClick={this.followUser}>{
+            this.props.user.following.includes(this.state.user)? "Unfollow User" : "Follow User"
+          }</button>
+          <button id="block"  onClick={this.blockUser}>Block User</button>
+          <button id="message"  onClick={this.messageUser}>Message User</button>
         </>)}
       </div>
     </div>;
@@ -209,12 +241,13 @@ class ProfilePage extends React.Component {
     if (this.state.state === state.LOADED) {return <div className='profile-page'>
       <div className='grid-background'/>
       {this.renderProfile(this.state.user===null)}
-      {this.renderFollowList()}
+      {this.renderFollowingList()}
+      {this.renderFollowerList()}
       {this.renderPosts()}
     </div>;}
     return this.renderMessage();
   }
 }
-const WrappedProfilePage = loggedInPage(withParams(ProfilePage));
+const WrappedProfilePage = loggedInPage(withParams(withNavigate(ProfilePage)));
 export {WrappedProfilePage as ProfilePage};
 export {default as ProfileCreationPage} from './profile-creation';
