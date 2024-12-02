@@ -1,10 +1,42 @@
-.image-element img{
+.image-input{
     width: 100%;
-    border-radius: 50%;
-    font-size: 100%;
+    height: 100%;
+    position: relative;
     cursor: pointer;
-    vertical-align: middle;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.image-element input{
+.image-input label{
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.image-input img{
+    max-height: 100%;
+    max-width: 100%;
+    margin: auto;
+    cursor: pointer;
+}
+.image-input input{
     display: none;
+}
+.image-input button{
+    position: absolute;
+    top: 0%;
+    right: 0%;
+    cursor: pointer;
+    width: min-content;
+    padding: 0 0.3em;
+    font-weight: bolder;
+    background: red;
+    color: black;
+    border: none;
+}
+.image-input button:hover{
+    border: 1px solid white;
+    color: white;
 }

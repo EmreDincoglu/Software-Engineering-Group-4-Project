@@ -46,7 +46,7 @@ async function sendRequest(config) {
  */
 export async function getUser() {
     let result = await sendRequest({
-        url: 'http://localhost:5000/user/getData',
+        url: 'http://localhost:5000/user/get',
         method: 'GET',
         credentials: true,
         body: null,
@@ -60,10 +60,9 @@ export async function getUser() {
 // Gets a specific user. returns {success: true, profile} or {success:false, fail_message}
 export async function getProfile(user_id) {
     let result = await sendRequest({
-        url: 'http://localhost:5000/user/profile/get',
+        url: "http://localhost:5000/user/profile/get?user=" + user_id,
         method: 'GET',
         credentials: true,
-        body: {user_id: user_id},
         fail_conds: [
             [{success: false, invalid_session: true}, "Invalid Session"],
             [{success: false, invalid_user: true}, "INVALID_USER"],
@@ -80,7 +79,7 @@ export async function updateProfile(profile_data) {
         url: 'http://localhost:5000/user/profile/edit',
         method: 'PUT',
         credentials: true,
-        body: {data: profile_data},
+        body: profile_data,
         fail_conds: [
             [{success: false, invalid_session: true}, "Invalid Session"],
         ],
@@ -197,4 +196,7 @@ export async function updateSpotifyToken(sendData) {
         ],
         desired_data: false
     });
+}
+export async function getPost(post_id){
+    
 }

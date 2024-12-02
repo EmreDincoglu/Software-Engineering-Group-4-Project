@@ -15,8 +15,8 @@ export function add_requests(app) {
     app.post('/user/spotify/connect/finish', finishConnection);
 }
 // given a user, gets the SpotifyAccount model from the db corresponding to it
-export async function getSpotifyData(user) {
-    return SpotifyAccount.findOne({user: user._id});
+export async function getSpotifyData(id) {
+    return SpotifyAccount.findById(id);
 }
 // Schema methods ----------------------------
 async function refresh(model) {
@@ -52,7 +52,7 @@ async function refresh(model) {
 // Requests ---------------------
 // Starts a connection process to the spotify api
 const connectSpotify = user_request(async (_, res, user) => {
-    await SpotifyAccount.deleteMany({user: user._id});
+    await SpotifyAccount.findByIdAndDelete(user._id);
     // start connection process
     res.json({success: true, path: 'https://accounts.spotify.com/authorize?' + stringify({
         response_type: 'code',
@@ -68,7 +68,7 @@ const finishConnection = user_request(async (req, res, user) => {
     if (req.body.user_id != req.cookies.user_id) {
         res.json({success: false, non_matchin_user_ids: true}); return;
     }
-    if (await getSpotifyData(user) != null) {res.json({success: false, already_connected: true}); return;}
+    if (await getSpotifyData(user._id) != null) {res.json({success: false, already_connected: true}); return;}
     // convert authorization token into an access token
     let token = req.body.token;
     let response = await send_encoded_request(
@@ -89,7 +89,7 @@ const finishConnection = user_request(async (req, res, user) => {
     }
     // Take required data and fill it into a new spotify database entry
     let spotify_doc = new SpotifyAccount({
-        user: req.body.user_id,
+        _id: req.body.user_id,
         access_token: response.data.access_token,
         refresh_token: response.data.refresh_token,
         date: Date.now()

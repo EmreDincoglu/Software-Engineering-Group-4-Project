@@ -1,6 +1,6 @@
 // Imports -----------------------------
 import {Post} from '../model.js';
-import {user_request} from '../lib.js';
+import {upload_image, user_request} from '../lib.js';
 // Export --------------------------------
 export function add_requests(app){
     app.post('/post/create', createPost);
@@ -12,12 +12,12 @@ export function add_requests(app){
 const createPost = user_request(async(req, res, user) => {
     //makes the post
     const newPost = new Post({
-        user_ID: user._id,
+        user: user._id,
         date: Date.now(),
         likes: 0,
-        desc: req.body.desc,
-        song_id: req.body.song_id,
-        post_image: req.body.post_image
+        text: req.body.text,
+        song: req.body.song,
+        image: await upload_image(req.body.image)
     });
     newPost.save();
     // Add newPost._id to the users posts list.   

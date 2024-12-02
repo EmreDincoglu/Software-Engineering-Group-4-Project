@@ -1,12 +1,5 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
-import moment from 'moment';
-
-// Given a birthdate, calculates an age as of today 
-export function calculate_age(birthdate){
-    let years = moment(Date.now()).diff(moment(new Date(birthdate)), 'years');
-    return Math.floor(years);
-}
+import { useNavigation, useSearchParams } from 'react-router-dom';
 
 // Wraps a component to have search params from the url
 export const withParams = WrappedComponent => props => {

@@ -2,12 +2,8 @@
   "name": "heart-beatz-backend",
   "version": "1.0.0",
   "main": "server.js",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "type": "module",
-  "description": "",
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
