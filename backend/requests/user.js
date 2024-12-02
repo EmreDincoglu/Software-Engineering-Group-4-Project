@@ -93,7 +93,18 @@ const blockUser = user_request(async(req, res, user) => {
     const blockedUser = await User.findById(req.body.user_id);
     if (!blockedUser) {res.json({success: false, invalid_user: true}); return;}
     // Block the user here. Maybe make it a toggle like the like post function?
-
+    const index = user.blocked.indexOf(blockedUser._id);
+    var blocked;
+    if (index > -1){
+        user.blocked.splice(index, 1);
+        blocked = false;
+    }
+    else {
+        user.blocked.push(blockedUser._id);
+        blocked = true;
+    }
+    await user.save();
+    res.json({success: true, blocked: blocked});
 });
 // Follow a user specified by user_id
 const followUser = user_request(async(req, res, user) => {
