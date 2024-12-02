@@ -6,3 +6,4 @@ export {ProfilePage, ProfileCreationPage} from './Profile/profile'
 export {default as SpotifyCallbackPage} from './SpotifyAuthCallback/spotify';
 export {default as Messages} from './Messages/messages';
 export {default as MutualFollowers} from './Messages/conversations';
+export {default as CreatePost} from './Home/createpost';

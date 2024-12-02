@@ -6,6 +6,7 @@ export function add_requests(app){
     app.post('/post/create', createPost);
     //likePost and block user are like a switch, if you call likePost and its already liked it will unlike it and vise versa
     app.post('/post/like', likePost);
+    app.get('/post/getAll', getAllPosts);
 }
 // Requests ---------------------------------
 // Create a post. uses desc: String, song_id: String, post_image: String
@@ -33,3 +34,13 @@ const likePost = user_request(async(req, res, user) => {
 
     //res.json({success: true, liked: ?});
 });
+
+const getAllPosts = user_request(async (req ,res) => {
+    try{
+        const posts = await Post.find().sort({date:-1});
+        res.json({succes: true,posts});
+    }catch{
+        console.error("error fetching psots:", error);
+        res.status(500).json({success: false, error: "Server error"});
+    }
+})
