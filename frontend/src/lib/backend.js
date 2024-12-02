@@ -197,6 +197,19 @@ export async function updateSpotifyToken(sendData) {
         desired_data: false
     });
 }
+// Returns a post from a post id
 export async function getPost(post_id){
-    
+    let result = await sendRequest({
+        url: "http://localhost:5000/post/get?post=" + post_id,
+        method: 'GET',
+        credentials: true,
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, invalid_post: true}, "Post not found"],
+            [{success: false, invalid_poster: true}, "Poster not found"],
+            [{success: false, blocked: true}, "Blocked User"]
+        ],
+        desired_data: "post"
+    });
+    return {success: result.success, fail_state: result.fail_message, post: result.data};
 }

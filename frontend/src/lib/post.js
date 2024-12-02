@@ -1,6 +1,7 @@
 import React from "react";
 import "./post.css";
-import { getProfile } from "./backend";
+import { getPost } from "./backend";
+import { UserDisplay } from "./user";
 
 export class PostDisplay extends React.Component {
   constructor(props) {
@@ -19,8 +20,7 @@ export class PostDisplay extends React.Component {
   }
 
   async grabPostData(){
-    //let result = await getPost(this.props.post); 
-    let result = {post: {}};
+    let result = await getPost(this.props.post);
     if (!result.success) {return;}
     this.setState({
       loading: false,
@@ -40,6 +40,12 @@ export class PostDisplay extends React.Component {
 
   render() {
     return <div className="post-display">
+      <UserDisplay 
+        user={this.state.poster}
+        alt="User"
+        fallback="/default_user.png"
+        clickable={true}
+      />
     </div>;
   }
 }

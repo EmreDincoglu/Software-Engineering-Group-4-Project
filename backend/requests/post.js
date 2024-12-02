@@ -1,12 +1,17 @@
 // Imports -----------------------------
-import {Post} from '../model.js';
+import {Post, User} from '../model.js';
 import {upload_image, user_request} from '../lib.js';
 // Export --------------------------------
 export function add_requests(app){
     app.post('/post/create', createPost);
     //likePost and block user are like a switch, if you call likePost and its already liked it will unlike it and vise versa
     app.post('/post/like', likePost);
+    app.get('/post/get', getPost);
     app.get('/post/getAll', getAllPosts);
+}
+// Helper Methods ------------------------------
+async function checkBlocked(userA, userB) {
+    return userA.checkBlocked(userB._id) || userB.checkBlocked(userA._id);
 }
 // Requests ---------------------------------
 // Create a post. uses desc: String, song_id: String, post_image: String
@@ -46,7 +51,22 @@ const likePost = user_request(async(req, res, user) => {
     res.json({success: true, liked: liked});
     //res.json({success: true, liked: ?});
 });
-
+// Get a specific post. Requires user and poster not blocked. Post id in "post" query
+const getPost = user_request(async (req, res, user) => {
+    let post = await Post.findById(req.query.post);
+    if (post == null) {res.json({success: false, invalid_post: true}); return;}
+    let poster = await User.findById(post.user);
+    if (poster == null) {res.json({success: false, invalid_poster: true}); return;}
+    if (checkBlocked(user, poster)) {res.json({success: false, blocked: true}); return;}
+    // get post image
+    if (post.image != null) {
+        post.image = await Image.findById(post.image);
+        if (post.image != null) {post.image = post.image.data;}
+        else {post.image = null;}
+    }
+    res.json({success: true, post: post});
+});
+// Returns sorted list of posts by posting date
 const getAllPosts = user_request(async (req ,res) => {
     try{
         const posts = await Post.find().sort({date:-1});
