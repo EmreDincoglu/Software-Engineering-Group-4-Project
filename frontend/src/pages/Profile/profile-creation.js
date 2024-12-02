@@ -6,13 +6,17 @@ import {MethodCaller} from '../../lib/default';
 import {Navigate} from "react-router-dom";
 import {updateProfile} from '../../lib/backend';
 import {ImageInput} from '../../lib/image';
+import './profile-creation.css';
 
 // Given an event, return the target value
 function getTargetVal(e) {return e.target.value;}
 // converts a value into the corresponding type with some hard coded rules
 function convert(val, type) {
   if (type === "text") {return val}
-  if (type === "date") {return (new Date(val)).toISOString().slice(0, 10);}
+  if (type === "date") {
+    if (val == null) {return null;}
+    return (new Date(val)).toISOString().slice(0, 10);
+  }
   return val;
 }
 // Returns a function which pipes a into b
@@ -49,7 +53,7 @@ const steps = {
 const stepData = [
   {
     prompt: <h2>What Is Your Name?</h2>,
-    name: "pref_name",
+    name: "name",
     input: "normal",
     type: "text",
     placeholder: "Preferred Name"
@@ -65,28 +69,28 @@ const stepData = [
     options: ["Man", "Woman", "Other"]
   }, {
     prompt: <h2>What Is Your Sexual Orientation</h2>,
-    name: "sexual_orientation",
+    name: "sexuality",
     input: "radio",
     options: ["Straight", "Gay", "Bisexual", "Pansexual"]
   }, {
     prompt: <h2>What Is Your Gender Preference</h2>,
-    name: "gender_preference",
+    name: "gender_pref",
     input: "checkbox",
     options: ["Man", "Woman", "Other"]
   }, {
     prompt: <h2>What Are Your Goals For A Relationship</h2>,
-    name: "relationship_goals",
+    name: "goals",
     input: "radio",
     options: ["Long-Term", "Short-Term", "Other"]
   }, {
     prompt: <h2>What Are Your Top 3 Favorite Music Genres?</h2>,
-    name: "favorite_genres",
+    name: "genres",
     input: "select",
     data_source: "genres",
     placeholder: "Select Your Favorite Genres"
   }, {
     prompt: <h2>What Are Your Top 3 Favorite Music Artists?</h2>,
-    name: "favorite_artists",
+    name: "artists",
     input: "select",
     data_source: "artists",
     placeholder: "Select Your Favorite Artists"
@@ -177,7 +181,8 @@ class ProfileCreationPage extends React.Component {
   replaceList(name, index) {
     return (element) => {
       let list = this.state.profile[name]; 
-      list[index] = element; 
+      if (element == null) {list.splice(index, 1);}
+      else {list[index] = element; }
       return list;
     }
   }
@@ -216,6 +221,7 @@ class ProfileCreationPage extends React.Component {
   renderNormalInput(config){
     return <input
       className={config.class??"pc-step-normal-input"}
+      id={config.type}
       type={config.type}
       value={convert(this.state.profile[config.name], config.type)}
       onChange={this.handleChange(config.name, getTargetVal)}
@@ -248,7 +254,7 @@ class ProfileCreationPage extends React.Component {
             type="checkbox"
             name={config.name}
             value={option}
-            checked={this.state.profile[config.name].includes(option)}
+            checked={(this.state.profile[config.name]??[]).includes(option)}
             onChange={this.handleChange(config.name, pipe(getTargetVal, this.toggleList(config.name)))}
           />
           {option}
@@ -270,12 +276,11 @@ class ProfileCreationPage extends React.Component {
   }
   // Renders a set of photo inputs
   renderPhotoSetInput(config){
-    const photoList = this.state.profile[config.name];
+    const photoList = this.state.profile[config.name]??[];
     return <div className={config.class??"pc-step-photo-set-input"}>
-      {(photoList??[]).map((photo, i) => (<ImageInput
+      {photoList.map((photo, i) => (<ImageInput
         key={i}
         value={photo}
-        fallback='/default-placeholder.png'
         alt={"Photo " + (i+1)}
         onChange={this.handleChange(config.name, this.replaceList(config.name, i))}
         cropSquare={config.cropSquare??null}
@@ -283,7 +288,6 @@ class ProfileCreationPage extends React.Component {
         limitRes={config.limitRes??null}
       />))}
       {photoList.length < config.count && <ImageInput
-        fallback='/default-placeholder.png'
         alt={"Photo " + (photoList.length+1)}
         onChange={this.handleChange(config.name, this.addToList(config.name))}
         cropSquare={config.cropSquare??null}
@@ -294,16 +298,15 @@ class ProfileCreationPage extends React.Component {
   }
   // Renders a single photo input.
   renderPhotoInput(config){
-    return <ImageInput
+    return <div className={config.class??"pc-step-photo-input"}><ImageInput
       className={config.class??"pc-step-photo-input"}
       value={this.state.profile[config.name]??null}
-      fallback='/default-placeholder.png'
       alt={config.placeholder??"Photo Upload"}
       onChange={this.handleChange(config.name, (x) => x)}
       cropSquare={config.cropSquare??null}
       sideLength={config.sideLength??null}
       limitRes={config.limitRes??null}
-    />;
+    /></div>;
   }
   // Renders the step form based on the step state
   renderStepContent(){
@@ -321,11 +324,14 @@ class ProfileCreationPage extends React.Component {
   // Renders the navigation buttons
   renderNavButtons(){
     return <div className='pc-navigation'>
-      {this.state.step > 0 && <button onClick={this.step(-1)}>Back</button>}
-      <button onClick={this.step(1)}>{
+      {this.state.step > 0 && <button id="nav" onClick={this.step(-1)}>Back</button>}
+      <button 
+        onClick={this.step(1)}
+        id={this.state.step < steps.save-1 ? "nav" : "save"}
+      >{
         this.state.step < steps.save-1 ? "Next" : "Save"}
       </button>
-      <button onClick={() => {this.setState({step: steps.redirect});}}>
+      <button id="cancel" onClick={() => {this.setState({step: steps.redirect});}}>
         Cancel
       </button>
     </div>;

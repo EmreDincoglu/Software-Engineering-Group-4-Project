@@ -2,70 +2,6 @@ import React from "react";
 import {Jimp} from "jimp";
 import "./image.css";
 
-export class ProfileImageElement extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      editable: false,
-      alt_text: "",
-      data: null,
-      fallback: null,
-      data_changed: false,
-      cropped_size: null
-    };
-    this.handleImageUpload = this.handleImageUpload.bind(this);
-  }
-
-  componentDidMount(){
-    this.setState(this.props.default_state);
-  }
-
-  async handleImageUpload(event){
-    event.preventDefault();
-    const input_data = await event.target.files[0]?.arrayBuffer();
-    let jimpImage = await Jimp.fromBuffer(input_data);
-    if (this.state.cropped_size != null) {
-      const width = jimpImage.bitmap.width;
-      const height = jimpImage.bitmap.height;
-      const side = Math.min(width, height);
-      const x = width<height? 0 : (width-side)/2;
-      const y = width<height? (height-side)/2 : 0;
-      jimpImage = jimpImage.crop({
-        w: side-1, h: side-1, x: x, y: y
-      });
-      jimpImage = jimpImage.resize({w: this.state.cropped_size, h: this.state.cropped_size});
-    }
-    const uploaded_image = await jimpImage.getBase64("image/png");
-    this.setState({data: uploaded_image, data_changed: true});
-    if (this.props.onImageUpload != null) {await this.props.onImageUpload(uploaded_image);}
-  }
-
-  render() {
-    return (this.state.editable? <div className="image-element">
-      <label>
-        <img 
-          alt={this.state.alt_text ?? ""}
-          src={this.state.data ?? this.state.fallback}
-          className="image-display"
-        />
-        <input 
-          type = "file"
-          accept = "image/*"
-          onChange = { this.handleImageUpload }
-          className = "image-input"
-          required
-        />
-      </label>
-    </div>:<div className="image-element">
-      <img 
-        alt={this.state.alt_text ?? "Img"} 
-        src={this.state.data ?? this.state.fallback}
-        className="image-display"
-      />
-    </div>);
-  }
-}
-
 // Crops a image square
 function cropSquare(img){
   const width = img.bitmap.width;
@@ -102,7 +38,7 @@ export class ImageInput extends React.Component {
     let jimpImage = await Jimp.fromBuffer(input_data);
     // Format image into recognized size and shape
     if (this.props.cropSquare === true) {
-      jimpImage = cropSquare(jimpImage, this.props.cropSquare);
+      jimpImage = cropSquare(jimpImage);
     }
     if (this.props.sideLength != null) {
       jimpImage = resize(jimpImage, this.props.sideLength);
@@ -126,10 +62,49 @@ export class ImageInput extends React.Component {
         <input 
           type = "file"
           accept = "image/*"
-          onChange = { this.handleImageUpload }
+          onChange = {this.handleImageUpload }
           style={{display: 'none'}}
         />
       </label>
+      {
+        this.props.value != null && 
+        this.props.onChange != null && 
+        <button className='remove-button' onClick={() => this.props.onChange(null)}>X</button>
+      }
     </div>;
+  }
+}
+
+export class ImageSetInput extends React.Component {
+  render(){
+    let photos = this.props.photos??[];
+    let emptyCount = this.props.count - photos.length;
+    return <>
+      {photos.map((photo, i) => (<ImageInput
+        key={i}
+        value={photo}
+        fallback={this.props.fallback??null}
+        alt={"Photo " + (i+1)}
+        onChange={(img) => {
+          let list = photos; list[i] = img;
+          this.props.onChange(list)
+        }}
+        cropSquare={this.props.cropSquare??null}
+        sideLength={this.props.sideLength??null}
+        limitRes={this.props.limitRes??null}
+      />))}
+      {Array(this.props.renderAll? emptyCount : 1).map((_, i) => (<ImageInput
+        key={i+photos.length}
+        fallback={this.props.fallback??null}
+        alt={"Photo " + (i+1)}
+        onChange={(img) => {
+          let list = photos; list.push(img);
+          this.props.onChange(list)
+        }}
+        cropSquare={this.props.cropSquare??null}
+        sideLength={this.props.sideLength??null}
+        limitRes={this.props.limitRes??null}
+      />))}
+    </>;
   }
 }

@@ -1,0 +1,118 @@
+.profile-creation {
+    width: min-content;
+    margin: 0 auto;
+    padding: 1em;
+    margin-top: 5em;
+    border: 1px solid white;
+    border-radius: 1em;
+    font-size: min(2vh, 2vw);
+}
+
+.pc-step{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    margin-bottom: 1em;
+}
+.pc-step .pc-step-prompt{
+    text-align: center;
+    text-wrap: nowrap;
+}
+
+.pc-step-input input{
+    font-size: 100%;
+}
+.pc-step-input input#date{
+    font-size: 125%;
+}
+.pc-step-radio-input {
+    display: flex;
+    flex-direction: row;
+    text-wrap: nowrap;
+    gap: 1em;
+    font-size: 125%;
+}
+.pc-step-checkbox-input {
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    font-size: 125%;
+}
+
+.pc-step-select-input {
+    color: black;
+}
+
+.pc-step-photo-set-input{
+    width: 26em;
+    height: 26em;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: left;
+    align-items: top;
+    align-content: baseline;
+    gap: 1em;
+    margin: 0 auto;
+}
+.pc-step-photo-set-input .image-input{
+    width: 8em;
+    height: 8em;
+    background-color: rgba(255, 255, 255, 0.137);
+    border: 1px solid white;
+    border-radius: 1em;
+    overflow: hidden;
+}
+.pc-step-photo-set-input .image-input img{
+    font-size: 175%;
+    font-weight: bold;
+}
+
+.pc-step-photo-input {
+    width: 12em;
+    height: 12em;
+    border: 1px solid white;
+    border-radius: 50%;
+}
+.pc-step-photo-input .image-input{
+    font-size: 200%;
+    text-align: center;
+    font-weight: bold;
+}
+.pc-step-photo-input .image-input img {
+    border-radius: 50%;
+}
+
+.pc-navigation{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-size: 100%;
+    gap: 2em;
+}
+.pc-navigation button{
+    color: white;
+    padding: 0.3em 0.6em;
+    font-weight: bold;
+    font-size: 100%;
+    margin-top: 1em;
+    cursor: pointer;
+    border: 1px solid white;
+    border-radius: 0.2em;
+}
+.pc-navigation button#nav {
+    background-color: rgb(93, 93, 255);
+}
+.pc-navigation button#cancel{
+    background-color: rgb(255, 80, 80);
+}
+.pc-navigation button#save{
+    background-color: limegreen;
+}
+.pc-navigation button:hover{
+    color: black;
+    border: 1px solid black;
+}

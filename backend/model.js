@@ -1,14 +1,11 @@
 // Imports
 import { createConnection, Schema, Types } from 'mongoose';
 import moment from 'moment';
+import { download_image, download_images } from './lib.js';
 // Database definition
 const databases = {
-    users: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
+    heartbeatz: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
     messages: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0'),
-    posts: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userPosts?retryWrites=true&w=majority&appName=Cluster0'),
-    liked: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userLiked?retryWrites=true&w=majority&appName=Cluster0'),
-    blocked: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userBlocked?retryWrites=true&w=majority&appName=Cluster0'),
-    follows: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/userFriends?retryWrites=true&w=majority&appName=Cluster0')
 };
 
 // Helper Methods
@@ -110,12 +107,12 @@ schemas.user = new Schema({
 });
 schemas.user.methods = {
     checkUniqueUsername: async function() {
-        let found = await databases.users.model('UserAccount').findOne({_lc_uname: this._lc_uname});
+        let found = await databases.heartbeatz.model('UserAccount').findOne({_lc_uname: this._lc_uname});
         if (found != null && found.id != this.id) {return false;}
         return true;
     },
     checkUniqueEmail: async function() {
-        let found = await databases.users.model('UserAccount').findOne({email: this.email});
+        let found = await databases.heartbeatz.model('UserAccount').findOne({email: this.email});
         if (found != null && found.id != this.id) {return false;}
         return true;
     },
@@ -173,7 +170,7 @@ schemas.user.methods = {
 };
 schemas.user.statics = {
     create_new: function(data) {
-        return databases.users.model('UserAccount')({
+        return databases.heartbeatz.model('UserAccount')({
             username: data.username,
             _lc_uname: data.username.toLowerCase(),
             email: data.email.toLowerCase(),
@@ -186,43 +183,73 @@ schemas.user.statics = {
         });
     }
 };
-models.user = databases.users.model('UserAccount', schemas.user);
+models.user = databases.heartbeatz.model('UserAccount', schemas.user);
 
 // Spotify
 schemas.spotify = new Schema({
-    user: {type: Types.ObjectId, required: true},
     access_token: {type: String, required: true},
     refresh_token: {type: String, required: true},
     date: {type: Date, required: true},
 });
-models.spotify = databases.users.model('SpotifyAccount', schemas.spotify);
+models.spotify = databases.heartbeatz.model('SpotifyAccount', schemas.spotify);
 
 // Profile
 schemas.profile = new Schema({
-    user: {type: Types.ObjectId, required: true},
-    pref_name: String,
+    // personal info
+    name: String,
     birthday: Date,
     gender: String,
-    sexual_orientation: String,
-    gender_preference: [String],
-    relationship_goals: String,
-    favorite_genres: [String],
-    favorite_artists: [String],
-    photos: [String],
-    profile_pic: String
+    sexuality: String,
+    gender_pref: [String],
+    goals: String,
+    // music preference
+    genres: [String],
+    artists: [String],
+    // photos
+    photos: [Types.ObjectId],
+    profile_pic: Types.ObjectId
 });
-schemas.profile.statics = {
-    create_new: function(user_id) {
-        return databases.users.model('UserProfile')({
-            user: user_id,
-            gender_preference: [],
-            favorite_genres: [],
-            favorite_artists: [],
-            photos: [],
-        });
+schemas.profile.methods = {
+    getData: async function(){
+        return {
+            name: this.name,
+            birthday: this.birthday,
+            gender: this.gender,
+            sexuality: this.sexuality,
+            gender_pref: this.gender_pref,
+            goals: this.goals,
+            genres: this.genres,
+            artists: this.artists,
+            photos: await download_images(this.photos),
+            profile_pic: await download_image(this.profile_pic)
+        };
     }
 };
-models.profile = databases.users.model('UserProfile', schemas.profile);
+schemas.profile.statics = {
+    create_new: function(user_id) {
+        return databases.heartbeatz.model('UserProfile')({
+            _id: user_id,
+            gender_pref: [],
+            genres: [],
+            artists: [],
+            photos: [],
+        });
+    },
+    get_standard_keys: function() {
+        return ["name", "birthday", "gender", "sexuality", "gender_pref", "goals", "genres", "artists"];
+    },
+    delete_full: async function(id) {
+        let profile = await databases.heartbeatz.model('UserProfile').findById(id);
+        if (profile == null) {return;}
+        let model = databases.heartbeatz.model('Image');
+        for (const photo of profile.photos){
+            await model.findByIdAndDelete(photo);
+        }
+        if (profile.profile_pic != null) {await model.findByIdAndDelete(profile.profile_pic);}
+        await databases.heartbeatz.model('UserProfile').findByIdAndDelete(profile._id);
+    }
+};
+models.profile = databases.heartbeatz.model('UserProfile', schemas.profile);
 
 // Messages
 schemas.message = new Schema({
@@ -234,19 +261,52 @@ schemas.message = new Schema({
 
 // Posts
 schemas.post = new Schema({
-    user_ID: {type: Types.ObjectId, required: true},
+    user: {type: Types.ObjectId, required: true},
     date: {type: Date, required: true},
     likes: {type: Number, required: true},
-    desc: String,
-    song_id: String,
-    post_image: String
+    text: String,
+    song: String,
+    image: Types.ObjectId
 });
-models.post = databases.posts.model('Post', schemas.post);
+models.post = databases.heartbeatz.model('Post', schemas.post);
+
+//Images
+schemas.image = new Schema({
+    data: {type: String, required: true}
+});
+schemas.image.statics = {
+    convert: async function(data) {
+        const image = databases.heartbeatz.model('Image')({data: data});
+        await image.save();
+        return image;
+    },
+    convert_list: async function(list) {
+        let converted = [];
+        for (const element of list){
+            let data = databases.heartbeatz.model('Image')({data: element});
+            await data.save();
+            converted.push(data);
+        }
+        return converted;
+    },
+    get: async function(id) {
+        return await databases.heartbeatz.model('Image').findById(id);
+    },
+    get_list: async function(list) {
+        let converted = [];
+        for (const id of list) {
+            converted.push(await databases.heartbeatz.model('Image').findById(id));
+        }
+        return converted;
+    }
+};
+models.image = databases.heartbeatz.model('Image', schemas.image);
 
 // Exports
 export {databases, schemas, models};
 export const User = models.user;
 export const Profile = models.profile;
 export const Post = models.post;
+export const Image = models.image;
 export const SpotifyAccount = models.spotify;
 
