@@ -1,8 +1,12 @@
 import React from 'react';
+import {Link, Navigate} from "react-router-dom";
+import moment from 'moment';
 import {loggedInPage} from '../../lib/auth';
-import {calculate_age, withParams} from '../../lib/default';
+import {withParams} from '../../lib/default';
 import {getProfile} from '../../lib/backend';
-import {Navigate} from "react-router-dom";
+import './profile.css';
+import { UserDisplay } from '../../lib/user';
+import { PostDisplay } from '../../lib/post';
 
 // State of the profile.
 const state = {
@@ -12,6 +16,34 @@ const state = {
   INVALID_USER: 3, //User does not exist
   NOT_CREATED: 4 // User has not created the profile yet.
 };
+
+// Given a birthdate, calculates an age as of today 
+function calculate_age(birthdate){
+  if (birthdate == null) {return null;}
+  let years = moment(Date.now()).diff(moment(new Date(birthdate)), 'years');
+  return Math.floor(years);
+}
+
+// Get day month year birthday string from date
+function get_birthday_string(birthdate){
+  if (birthdate == null) {return null;}
+  return (new Date(birthdate)).toDateString().substring(4);
+}
+
+// Get a string for a list of items, returns null if list is [] or null
+function get_list_string(list) {
+  if (list == null || list == []) {return null;}
+  return list.join(", ");
+}
+
+// Returns html to display data with label, returns null when data is null
+function displayInfoItem(label, data){
+  if (data == null) {return null;}
+  return <div className='profile-info-item'>
+    <span>{label}</span>
+    <span>{data}</span>
+  </div>;
+}
 
 class ProfilePage extends React.Component {
   constructor(props){
@@ -23,8 +55,14 @@ class ProfilePage extends React.Component {
       user: "unset",
       // profile data of the requested user.
       profile: null,
+      goToCreate: false
     };
     this.update = this.update.bind(this);
+    this.renderFollowList = this.renderFollowList.bind(this);
+    this.renderPosts = this.renderPosts.bind(this);
+    this.renderProfilePictures = this.renderProfilePictures.bind(this);
+    this.renderProfile = this.renderProfile.bind(this);
+    this.renderMessage = this.renderMessage.bind(this);
   }
   // Called when the page is loaded or changed. Makes sure the correct profile is loaded
   async update(){
@@ -57,46 +95,124 @@ class ProfilePage extends React.Component {
   componentDidMount() {
     this.update();
   }
+  renderFollowList(){
+    return <div className='profile-following'>
+      <h1>Followed Users</h1>
+      {(this.state.profile.followed??[]).map((id) => (<UserDisplay 
+        user={id}
+        alt="User"
+        fallback="/default_user.png"
+        clickable={true}
+      />))}
+    </div>;
+  }
+  renderPosts(){
+    return <div className='profile-posts-body'>
+      <h1>Posts</h1>
+      <div className='profile-posts'>
+        {this.state.profile.posts??[].map((id, i) => (<PostDisplay
+          post={id}
+        />))}
+      </div>
+    </div>;
+  }
+  renderProfilePictures(){
+    return <>{(this.state.profile.photos??[]).map((photo, i) => (<img
+      className='profile-photo'
+      key={i}
+      src={photo}
+      alt={"Photo " + (i+1)}
+    />))}</>;
+  }
   renderProfile(editable){
     let profile = this.state.profile;
-    return <>
-      <div className='grid-background'/>
-      <div className='profile'>
-        <h1>{profile.pref_name??this.props.user.username}</h1>
-        <div className = "basic-info">
-          <h2> Age: {calculate_age(profile.birthday)}</h2>
-          <h2> Relationship Goals: {profile.relationship_goals}</h2>
-          <h2> Gender: {profile.gender}</h2>
-          <h2> Sexual Orientation: {profile.sexual_orientation}</h2>
-          <h2> Birthday: {(new Date(profile.birthday)).toDateString()}</h2>
+    return <div className='profile'>
+      <div className='profile-info'>
+        <div className='profile-bio'>
+          <div className='profile-header'>
+            <img 
+              className='profile-picture'
+              src={profile.profile_pic??"/default_user.png"}
+              alt="Profile"
+            />
+            <div className='profile-name'>
+              <h1>{profile.name}</h1>
+              <h2>@{this.props.user.username}</h2>
+            </div>
+          </div>
+          <div className='profile-age'>
+            {displayInfoItem("Age: ", calculate_age(profile.birthday))}
+            {displayInfoItem("Birthday: ", get_birthday_string(profile.birthday))}
+          </div>
+          <div className='profile-gender'>
+            {displayInfoItem("Gender: ", profile.gender)}
+            {displayInfoItem("Sexual Orientation: ", profile.sexuality)}
+            {displayInfoItem("Preferred Genders: ", get_list_string(profile.gender_pref))}
+          </div>
         </div>
-        <div className="music-section">
-          <h2> Favorite Genres: {profile.favorite_genres}</h2>
-          <h2> Favorite Artists: {profile.favorite_artists}</h2>
+        <div className='profile-spotify-pictures'>
+          <div className='profile-spotify'>
+            {displayInfoItem("Favorite Genres: ", get_list_string(profile.genres))}
+            {displayInfoItem("Favorite Artists: ", get_list_string(profile.artists))}
+          </div>
+          <div className='profile-pictures'>
+            {this.renderProfilePictures()}
+          </div>
         </div>
-        {editable&&
-          <button onClick={() => {this.setState({state: state.NOT_CREATED})}}>
-            Edit Profile
-          </button>
-        }
       </div>
-    </>;
+      <div className='profile-buttons'>
+        {editable? (
+          <button 
+            className='profile-edit-button'
+            onClick={() => {this.setState({goToCreate: true})}}
+          >Edit Profile</button>
+        ) : (<>
+          <button>Follow User</button>
+          <button id="block">Block User</button>
+          <button id="message">Message User</button>
+        </>)}
+      </div>
+    </div>;
   }
-  render() {
-    switch (this.state.state){
-      case state.LOADING:
-        return <h1>Loading...</h1>;
+  renderMessage(){
+    if (this.state.state === state.NOT_CREATED && this.state.user === null) {
+      return <div className='profile-message' id="normal">
+        <h1>You have not yet created your profile.</h1>
+        <Link to="/profile-creation">Create Now!</Link>
+      </div>;
+    }
+    if (this.state.state === state.LOADING) {
+      return <div className='profile-message' id="loading">
+        <h1>Loading...</h1>
+      </div>;
+    }
+    let message = "";
+    switch (this.state.state) {
       case state.INVALID_USER:
-        return <h1>User not found.</h1>
+        message = "User not found";
+        break;
       case state.BLOCKED:
-        return <h1>Unable to view profile. You or this user have blocked the other.</h1>
+        message = "Unable to view profile. You or this user have blocked the other.";
+        break;
       case state.NOT_CREATED:
-        if (this.state.user === null) {return <Navigate to="/profile-creation"/>;}
-        return <h1>This user has not yet created their profile.</h1>
+        message = "This user has not yet created their profile.";
+        break;
       default:
     }
-    // Display Profile:
-    return this.renderProfile(this.state.user === null);
+    return <div className='profile-message' id={(this.state.state === state.NOT_CREATED)? "normal" : "error"}>
+      <h1>{message}</h1>
+      <button onClick={() => {this.props.setParams({})}}>Go To Your Profile</button>
+    </div>;
+  }
+  render() {
+    if (this.state.goToCreate) {return <Navigate to='/profile-creation'/>;}
+    if (this.state.state === state.LOADED) {return <div className='profile-page'>
+      <div className='grid-background'/>
+      {this.renderProfile(this.state.user===null)}
+      {this.renderFollowList()}
+      {this.renderPosts()}
+    </div>;}
+    return this.renderMessage();
   }
 }
 const WrappedProfilePage = loggedInPage(withParams(ProfilePage));

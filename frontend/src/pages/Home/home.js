@@ -33,7 +33,7 @@ function Posts() {
                         <li key={post._id} className="post">
                             <h3>{post.desc}</h3>
                             {post.song_id && <p>{post.song_id}</p>}
-                            {post.post_image && <img src={post.post_image.url} alt={post.post_image} alt="uh oh!"/>}
+                            {post.post_image && <img src={post.post_image.url} alt={post.post_image}/>}
                             <p>Likes: {post.likes}</p>
                             <button>Like</button>
                             {/*    put a heart image there*/}
