@@ -27,7 +27,7 @@ function Posts() {
     return (
         <div className="grid-background">
             <div className="posts-container">
-                <button onClick={() => window.location.href = '/create-post'}>Make a Post</button>
+                <button onClick={() => window.location.href = 'create-post'}>Make a Post</button>
                 <ul>
                     {posts.map((post) => (
                         <li key={post._id} className="post">

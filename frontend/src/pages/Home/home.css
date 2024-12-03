@@ -1,7 +1,12 @@
-.title{
-    text-align: center;
+.posts-container{
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    margin-top: 4vw;
-    padding-top: 30vh;
+
 }
+
+.posts-container p {
+    text-align: center;
+    color:white;
+}
+
