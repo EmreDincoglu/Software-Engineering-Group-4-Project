@@ -266,7 +266,8 @@ schemas.post = new Schema({
     likes: {type: Number, required: true},
     text: String,
     song: String,
-    image: Types.ObjectId
+    image: Types.ObjectId,
+    image_url: String,
 });
 models.post = databases.heartbeatz.model('Post', schemas.post);
 

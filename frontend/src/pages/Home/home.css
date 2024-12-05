@@ -10,3 +10,19 @@
     color:white;
 }
 
+.posts-container button{
+    z-index: 10;
+}
+
+.posts-description {
+    color:white;
+    text-align: center;
+}
+
+.post-image img{
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    max-height: 300px;
+    width: auto;
+}

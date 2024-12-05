@@ -9,7 +9,7 @@ import { add_requests } from './requests/default.js';
 const app = express();
 app.use(json({limit: '100mb'}));
 app.use(cookieParser());
-app.use(cors({origin: ['http://localhost:3000', 'http://localhost:3000/login', 'http://localhost:3000/home'], credentials: true}));
+app.use(cors({origin: ['http://localhost:3000', 'http://localhost:3000/login', 'http://localhost:3000/home', 'http://localhost:3000/create-post'], credentials: true}));
 // Http request setup
 add_requests(app);
 // App start
