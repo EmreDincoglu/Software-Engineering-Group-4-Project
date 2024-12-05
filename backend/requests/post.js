@@ -64,7 +64,7 @@ const likePost = user_request(async(req, res, user) => {
     }
     await user.save();
     await post.save();
-    res.json({success: true, liked: liked});
+    res.json({success: true, liked: liked, likes: post.likes});
     //res.json({success: true, liked: ?});
 });
 // Get a specific post. Requires user and poster not blocked. Post id in "post" query
