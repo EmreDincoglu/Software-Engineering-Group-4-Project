@@ -13,6 +13,7 @@ const SCOPE = "user-top-read streaming";
 export function add_requests(app) {
     app.get('/user/spotify/connect/begin', connectSpotify);
     app.post('/user/spotify/connect/finish', finishConnection);
+    app.get('/spotify/search', spotifySearch);
 }
 // given a user, gets the SpotifyAccount model from the db corresponding to it
 export async function getSpotifyData(id) {
@@ -97,3 +98,28 @@ const finishConnection = user_request(async (req, res, user) => {
     await spotify_doc.save();
     res.json({success: true});
 });
+
+const spotifySearch = user_request(async(req, res, user) => {
+    const spotifyData = await getSpotifyData(user._id);
+    if (!spotifyData){
+        return res.json({success: false, error: "Connect spotify account and try again"})
+    }
+    const refreshres = await refresh(spotifyData);
+    if (!refreshres.success){
+        return res.json({success: false, error: "Failed to refresh"});
+    }
+
+    const query = req.query.query||'song';
+    const searchres = await send_encoded_request(
+        `http://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
+        'GET',
+        {
+            'Authorization': `Bearer ${spotifyData.access_token}`,
+        }
+    )
+
+    if (!searchres.success){
+        res.json({success:false, error:'Spotify search fail'})
+    }
+    res.json(searchres.data);
+    })

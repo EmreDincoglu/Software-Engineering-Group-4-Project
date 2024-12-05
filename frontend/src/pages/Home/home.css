@@ -1,7 +1,28 @@
-.title{
-    text-align: center;
+.posts-container{
+    display: flex;
+    flex-direction: column;
     justify-content: center;
+
+}
+
+.posts-container p {
+    text-align: center;
+    color:white;
+}
+
+.posts-container button{
+    z-index: 10;
+}
+
+.posts-description {
+    color:white;
+    text-align: center;
+}
+
+.post-image img{
+    text-align: center;
     align-items: center;
-    margin-top: 4vw;
-    padding-top: 30vh;
+    justify-content: center;
+    max-height: 300px;
+    width: auto;
 }
