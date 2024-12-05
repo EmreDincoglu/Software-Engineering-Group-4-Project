@@ -54,7 +54,7 @@ const likePost = user_request(async(req, res, user) => {
     let liked;
     if (index > -1) {
         user.liked.splice(index, 1);
-        post.likes = -1;
+        post.likes -= 1;
         liked = false;
     }
     else {
