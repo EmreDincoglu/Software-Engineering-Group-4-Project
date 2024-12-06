@@ -1,43 +1,29 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
-import { updateSpotifyToken } from "../../lib/backend";
-import { loggedInPage } from "../../lib/auth";
-import { withParams } from "../../lib/default";
+import {updateSpotifyToken, loggedInPage, withParams, withNavigate} from '../../lib/default';
 
 class SpotifyCallbackPage extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            redirectToHomepage: false
-        };
-        this.updateSpotify = this.updateSpotify.bind(this);
+  componentDidMount() {
+    // get url params
+    let state = this.props.params.get('state');
+    let code = this.props.params.get('code');
+    let error = this.props.params.get('error');
+    // Alert user if spotify returned error
+    if (error!=null) {
+      alert("Spotify Returned Error: " + error);
+      this.props.navigate("/home");
+      return;
     }
-    async updateSpotify() {
-        //get url params
-        let state = this.props.params.get('state');
-        let code = this.props.params.get('code');
-        let error = this.props.params.get('error');
-        if (error != null) {
-            alert("Spotify Returned Error: " + error);
-        }else {
-            //ask express to update spotify code
-            let result = await updateSpotifyToken({user_id: state, token: code});
-            if (!result.success) {
-                alert("Failed: " + result.error_message);
-            }
-        }
-        this.setState({redirectToHomepage: true});
-        await this.props.updateUser();
-    }
-    componentDidMount() {
-        this.updateSpotify();
-    }
-
-    render() {
-        if (this.state.redirectToHomepage) {
-            return <Navigate to='/home' />;
-        }
-        return (<></>);
-    }
+    // Upload the token, alerting user on failure, then redirect to homepage
+    updateSpotifyToken(state, code).finally((result) => {
+      if (!result.success) {
+        alert("Failed: " + result.error_message);
+        this.props.navigate("/home");
+      }else {
+        this.props.navigate("/home");
+        this.props.updateUser();
+      }
+    });
+  }
+  render() {return <></>;}
 }
-export default loggedInPage(withParams(SpotifyCallbackPage));
+export default loggedInPage(withParams(withNavigate(SpotifyCallbackPage)));

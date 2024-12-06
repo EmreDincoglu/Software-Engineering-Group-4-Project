@@ -9,10 +9,11 @@ export function add_requests(app){
 // given a user, gets the Profile document
 export async function getProfileData(user) {
     let profile = await Profile.findById(user._id);
-    if (profile==null) {return null};
-    profile = await profile.getData();
+    if (profile==null) {profile = {};}
+    else {profile = profile.toJSON();}
     profile.username = user.username;
-    profile.followed = user.followed;
+    profile.following = user.following;
+    profile.followers = user.followers;
     profile.blocked = user.blocked;
     profile.posts = user.posts;
     profile.liked = user.liked;
@@ -20,20 +21,19 @@ export async function getProfileData(user) {
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
-    return userA.checkBlocked(userB._id) || userB.checkBlocked(userA._id);
+    return userA.checkBlocked(userB._id.toString()) || userB.checkBlocked(userA._id.toString());
 }
 // Requests ---------------------------------
 // Gets the profile of a user. requires user: ObjectId
 const getProfile = user_request(async(req, res, self) => {
-    const user = await User.findById(req.query.user).catch((err) => {
+    const user = await User.findById(req.query.user).catch(() => {
        return null;
     });
     if (user == null) {res.json({success: false, invalid_user: true}); return;}
     //checks to see if user is blocked, if so will not send profile data
     if (await checkBlocked(user, self)) {res.json({success: false, blocked: true}); return;}
     // Gets/creates the profile
-    let profile = getProfileData(user);
-    if (profile == null) {res.json({success: false, not_created: true}); return;}
+    let profile = await getProfileData(user);
     // return profile
     res.json({success: true, profile: profile});
 });

@@ -1,7 +1,8 @@
 // Imports
 import { createConnection, Schema, Types } from 'mongoose';
 import moment from 'moment';
-import { download_image, download_images } from './lib.js';
+import { send_encoded_request } from './lib.js';
+import { CLIENT_ENCODED } from './requests/spotify.js';
 // Database definition
 const databases = {
     heartbeatz: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
@@ -165,7 +166,10 @@ schemas.user.methods = {
     },
     // Determines if this user has blocked user_id
     checkBlocked: async function(user_id) {
-        return (this.blocked??[]).includes(user_id);
+        for (const id of (this.blocked??[])){
+            if (id.toString() === user_id) {return true;}
+        }
+        return false;
     }
 };
 schemas.user.statics = {
@@ -191,6 +195,32 @@ schemas.spotify = new Schema({
     refresh_token: {type: String, required: true},
     date: {type: Date, required: true},
 });
+schemas.spotify.methods = {
+    isOld: function() {
+        return moment(Date.now()).diff(moment(this.date), 'minutes') > 40.0;
+    },
+    refresh: async function() {
+        let response = await send_encoded_request(
+            "https://accounts.spotify.com/api/token",
+            "POST",
+            {// headers
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + CLIENT_ENCODED
+            },
+            {// body
+                grant_type: 'refresh_token',
+                refresh_token: this.refresh_token
+            }
+        );
+        if (!response.success) {return false;}
+        if (response.data.access_token == null || response.data.refresh_token == null) {false}
+        this.access_token = response.data.access_token;
+        this.refresh_token = response.data.refresh_token??response.data.access_token;
+        this.date = Date.now();
+        await this.save();
+        return true;
+    }
+};
 models.spotify = databases.heartbeatz.model('SpotifyAccount', schemas.spotify);
 
 // Profile
@@ -209,22 +239,6 @@ schemas.profile = new Schema({
     photos: [Types.ObjectId],
     profile_pic: Types.ObjectId
 });
-schemas.profile.methods = {
-    getData: async function(){
-        return {
-            name: this.name,
-            birthday: this.birthday,
-            gender: this.gender,
-            sexuality: this.sexuality,
-            gender_pref: this.gender_pref,
-            goals: this.goals,
-            genres: this.genres,
-            artists: this.artists,
-            photos: await download_images(this.photos),
-            profile_pic: await download_image(this.profile_pic)
-        };
-    }
-};
 schemas.profile.statics = {
     create_new: function(user_id) {
         return databases.heartbeatz.model('UserProfile')({
@@ -267,7 +281,6 @@ schemas.post = new Schema({
     text: String,
     song: String,
     image: Types.ObjectId,
-    image_url: String,
 });
 models.post = databases.heartbeatz.model('Post', schemas.post);
 

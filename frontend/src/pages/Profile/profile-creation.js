@@ -1,11 +1,10 @@
 import React from 'react';
-import Select from 'react-select';
+import AsyncSelect from 'react-select/async';
 import makeAnimated from 'react-select/animated';
-import {loggedInPage} from '../../lib/auth';
-import {MethodCaller} from '../../lib/default';
+import {
+  loggedInPage, MethodCaller, getImage, updateProfile, ImageInput, spotifyGenreSearch, spotifyArtistSearch
+} from '../../lib/default';
 import {Navigate} from "react-router-dom";
-import {updateProfile} from '../../lib/backend';
-import {ImageInput} from '../../lib/image';
 import './profile-creation.css';
 
 // Given an event, return the target value
@@ -22,18 +21,6 @@ function convert(val, type) {
 // Returns a function which pipes a into b
 function pipe(a, b) {return (val) => b(a(val));}
 
-// Genre Options
-const genre_options = [
-  {value: 'pop' , label: 'Pop'},
-  {value: 'rock', label: 'Rock'},
-  {value: 'hip-hop', label: 'Hip Hop'},
-  {value: 'rap', label: 'Rap'},
-  {value: 'country', label: 'Country'},
-  {value: 'randb', label: 'R&B'},
-  {value: 'folk', label: 'Folk'},
-  {value: 'jazz', label: 'Jazz'},
-  {value: 'heavy-metal', label:"Heavy Metal"}
-];
 // mapping from step to step number
 const steps = {
   name: 0,
@@ -85,14 +72,12 @@ const stepData = [
   }, {
     prompt: <h2>What Are Your Top 3 Favorite Music Genres?</h2>,
     name: "genres",
-    input: "select",
-    data_source: "genres",
+    input: "genre",
     placeholder: "Select Your Favorite Genres"
   }, {
     prompt: <h2>What Are Your Top 3 Favorite Music Artists?</h2>,
     name: "artists",
-    input: "select",
-    data_source: "artists",
+    input: "artist",
     placeholder: "Select Your Favorite Artists"
   }, {
     prompt: <h2>Upload Up To 9 Of Your Favorite Photos.</h2>,
@@ -116,15 +101,11 @@ class ProfileCreationPage extends React.Component {
     this.state = {
       step: steps.name,
       profile: props.user.profile??{},
-      selectOptions: {
-        genres: genre_options,
-        artists: genre_options
-      }
     };
+    this.downloadImages = this.downloadImages.bind(this);
 
     this.step = this.step.bind(this);
     this.saveProfile = this.saveProfile.bind(this);
-    this.findOptions = this.findOptions.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.replaceList = this.replaceList.bind(this);
     this.addToList = this.addToList.bind(this);
@@ -134,20 +115,44 @@ class ProfileCreationPage extends React.Component {
     this.renderNormalInput = this.renderNormalInput.bind(this);
     this.renderRadioInput = this.renderRadioInput.bind(this);
     this.renderCheckboxInput = this.renderCheckboxInput.bind(this);
-    this.renderSelectInput = this.renderSelectInput.bind(this);
+    this.renderGenreInput = this.renderGenreInput.bind(this);
+    this.renderArtistInput = this.renderArtistInput.bind(this);
     this.renderPhotoSetInput = this.renderPhotoSetInput.bind(this);
     this.renderPhotoInput = this.renderPhotoInput.bind(this);
     this.renderMethods = {
       normal: this.renderNormalInput,
       radio: this.renderRadioInput,
       checkbox: this.renderCheckboxInput,
-      select: this.renderSelectInput,
+      genre: this.renderGenreInput,
+      artist: this.renderArtistInput,
       photo_set: this.renderPhotoSetInput,
       photo: this.renderPhotoInput
     };
 
+    this.genreSearch = this.genreSearch.bind(this);
+    this.getGenreOptions = this.getGenreOptions.bind(this);
+    this.artistSearch = this.artistSearch.bind(this);
+    this.getArtistOptions = this.getArtistOptions.bind(this);
+
     this.renderStepContent = this.renderStepContent.bind(this);
     this.renderNavButtons = this.renderNavButtons.bind(this);
+  }
+  // Downloading images from database
+  async downloadImages(){
+    let newProfile = this.state.profile;
+    if (newProfile.profile_pic != null) {
+      let image = await getImage(newProfile.profile_pic);
+      newProfile.profile_pic = image.data??"";
+    }
+    newProfile.photos = newProfile.photos??[];
+    for(let i = 0; i < newProfile.photos.length; i++) {
+      let image = await getImage(newProfile.photos[i]);
+      newProfile.photos[i] = image.data??"";
+    }
+    this.setState({profile: newProfile});
+  }
+  componentDidMount(){
+    this.downloadImages();
   }
   // Return a method which adds delta to step. used by next and prev buttons
   step(delta) {
@@ -166,16 +171,6 @@ class ProfileCreationPage extends React.Component {
     let result = await updateProfile(this.state.profile);
     if (!result.success) {this.props.updateUser(); return;}
     this.setState({step: steps.redirect});
-  }
-  // Given the name of a list in the profile data, converts the list of string to a list of options, grabbing options from the specified source
-  findOptions(source, name) {
-    return (this.state.profile[name]??[]).map((value) => (
-      this.state.selectOptions[source].find((opt) => opt.value === value)
-    ));
-  }
-  // Given a list of Select options, return a list of String
-  convertOptions(options) {
-    return options.map((opt) => opt.value);
   }
   // Returns a method which replaces a specific index of a list with the input element.
   replaceList(name, index) {
@@ -262,16 +257,53 @@ class ProfileCreationPage extends React.Component {
       ))}
     </div>;
   }
-  // Renders a select many input box 
-  renderSelectInput(config){
-    return <Select
+  convertOptions(opts) {
+    return opts.map((opt) => (opt.value));
+  }
+  // Genre search stuff
+  async genreSearch(search) {
+    let result = await spotifyGenreSearch(search);
+    if (!result.success) {return [];}
+    return result.genres.map((genre) => ({value: genre, label: genre}));
+  }
+  getGenreOptions() {
+    return (this.state.profile.genres??[]).map((genre) => ({value: genre, label: genre}));
+  }
+  renderGenreInput(config){
+    return <AsyncSelect
       className={config.class??"pc-step-select-input"}
       components={makeAnimated()}
-      options={this.state.selectOptions[config.data_source]}
-      value={this.findOptions(config.data_source, config.name)}
+      loadOptions={(val, callback) => {
+        this.genreSearch(val).then((result) => {callback(result)});
+      }}
+      value={this.getGenreOptions(config.data_source, config.name)}
       onChange={this.handleChange(config.name, this.convertOptions)}
       placeholder={config.placeholder}
       isMulti
+      cacheOptions
+    />;
+  }
+  // Artist Search Stuff
+  async artistSearch(search) {
+    let result = await spotifyArtistSearch(search);
+    if (!result.success) {return [];}
+    return result.artists.map((artist) => ({value: artist.name, label: artist.name}));
+  }
+  getArtistOptions() {
+    return (this.state.profile.artists??[]).map((artist) => ({value: artist, label: artist}));
+  }
+  renderArtistInput(config){
+    return <AsyncSelect
+      className={config.class??"pc-step-select-input"}
+      components={makeAnimated()}
+      loadOptions={(val, callback) => {
+        this.artistSearch(val).then((result) => {callback(result)});
+      }}
+      value={this.getArtistOptions(config.data_source, config.name)}
+      onChange={this.handleChange(config.name, this.convertOptions)}
+      placeholder={config.placeholder}
+      isMulti
+      cacheOptions
     />;
   }
   // Renders a set of photo inputs
@@ -279,7 +311,7 @@ class ProfileCreationPage extends React.Component {
     const photoList = this.state.profile[config.name]??[];
     return <div className={config.class??"pc-step-photo-set-input"}>
       {photoList.map((photo, i) => (<ImageInput
-        key={i}
+        keyVal={i}
         value={photo}
         alt={"Photo " + (i+1)}
         onChange={this.handleChange(config.name, this.replaceList(config.name, i))}
@@ -310,6 +342,16 @@ class ProfileCreationPage extends React.Component {
   }
   // Renders the step form based on the step state
   renderStepContent(){
+    if (this.props.user.spotify == null && (this.state.step === steps.artists || this.state.step === steps.genres)) {
+      return <div className='pc-step'>
+        <div className='pc-step-prompt'>
+          {stepData[this.state.step].prompt}
+        </div>
+        <div className='pc-step-input'>
+          No Spotify Account found. Go to the account page to connect your Spotify Account.
+        </div>
+      </div>
+    }
     return <div className='pc-step'>
       <div className='pc-step-prompt'>
         {stepData[this.state.step].prompt}

@@ -15,7 +15,7 @@ export function add_requests(app){
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
-    return userA.checkBlocked(userB._id) || userB.checkBlocked(userA._id);
+    return userA.checkBlocked(userB._id.toString()) || userB.checkBlocked(userA._id.toString());
 }
 // Requests ---------------------------------
 // Create a post. uses desc: String, song_id: String, post_image: String
@@ -71,38 +71,35 @@ const likePost = user_request(async(req, res, user) => {
 });
 // Get a specific post. Requires user and poster not blocked. Post id in "post" query
 const getPost = user_request(async (req, res, user) => {
-    let post = await Post.findById(req.query.post).populate('image');
+    // get post
+    let post = await Post.findById(req.query.post);
     if (post == null) {res.json({success: false, invalid_post: true}); return;}
+    // ensure poster has not blocked user
     let poster = await User.findById(post.user);
     if (poster == null) {res.json({success: false, invalid_poster: true}); return;}
-    if (checkBlocked(user, poster)) {res.json({success: false, blocked: true}); return;}
-    // get post image
-    if (post.image != null) {
-        post.image = post.image.data.toString('base64');
-    }else {post.image = null;}
-    res.json({success: true, post: post});
+    if (await checkBlocked(user, poster)) {res.json({success: false, blocked: true}); return;}
+    // return post data
+    res.json({success: true, post: {
+        user: post.user,
+        date: post.date,
+        likes: post.likes,
+        liked: poster.liked.includes(post._id),
+        text: post.text??null,
+        song: post.song??null,
+        image: post.image??null,
+    }});
 });
 // Returns sorted list of posts by posting date
-const getAllPosts = user_request(async (req ,res) => {
-    try{
-        const posts = await Post.find().sort({date:-1});
-
-        const recentposts = await Promise.all(
-            posts.map(async (post) => {
-                const postObj = post.toObject();
-                if (post.image){
-                    const imageDoc = await Image.findById(post.image);
-                    postObj.image = imageDoc ? imageDoc.data : null;
-                }
-                return postObj;
-            })
-        )
-        res.json({success: true,posts: recentposts});
-        console.log(posts.text);
-    }catch(error){
-        console.error("error fetching posts:", error);
-        res.status(500).json({success: false, error: "Server error"});
+const getAllPosts = user_request(async (_, res, user) => {
+    const posts = await Post.find().sort({date:-1});
+    let converted = [];
+    for(const post of posts){
+        let poster = await User.findById(post.user);
+        if (poster==null) {continue;}
+        if (await checkBlocked(poster, user)) {continue;}
+        converted.push(post._id);
     }
+    res.json({success: true, posts: converted});
 })
 //send -1 to start at the beginning of the feed, and youll get the 3 latest posts 
 //will also return a position number so you can send in that value next time to get the next 3

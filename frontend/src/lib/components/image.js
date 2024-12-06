@@ -1,6 +1,7 @@
 import React from "react";
 import {Jimp} from "jimp";
 import "./image.css";
+import { getImage, MethodCaller } from "../default";
 
 // Crops a image square
 function cropSquare(img){
@@ -74,7 +75,6 @@ export class ImageInput extends React.Component {
     </div>;
   }
 }
-
 export class ImageSetInput extends React.Component {
   render(){
     let photos = this.props.photos??[];
@@ -106,5 +106,46 @@ export class ImageSetInput extends React.Component {
         limitRes={this.props.limitRes??null}
       />))}
     </>;
+  }
+}
+// Renders an image defined by an Image object id placed in the image prop. loads the image asynchronously and renders when ready
+export class StoredImage extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      loadState: 0,
+      image: null,
+      id: this.props.image
+    }
+    this.setImage = this.setImage.bind(this);
+    this.loadImage = this.loadImage.bind(this);
+  }
+  setImage(){
+    if (this.state.id !== this.props.image){
+      this.setState({loadState: 0, image: null, id: this.props.image});
+    }
+  }
+  loadImage(){
+    if (this.state.loadState !== 0) {return;}
+    this.setState({loadState: 1});
+    let id = this.state.id;
+    getImage(id).then((result) => {
+      if (id!==this.state.id){return;}
+      let data = result.data??null;
+      if (data != null && data.substring(0, 4) != "data"){
+        data = "data:image/png;base64," + data;
+      }
+      this.setState({loadState: 2, image: data??null, id: id});
+    });
+  }
+  render() {
+    if (this.state.id!==this.props.image){return <MethodCaller method={this.setImage}/>;}
+    if (this.state.loadState===0){return <MethodCaller method={this.loadImage}/>;}
+    return <img
+      className={this.props.className??null}
+      alt={this.props.alt??""}
+      src={this.state.image??this.props.fallback}
+      key={this.props.keyVal??null}
+    />;
   }
 }
