@@ -2,6 +2,7 @@
 import {Post, User, Image} from '../model.js';
 import {upload_image, user_request} from '../lib.js';
 import multer from 'multer';
+import { mongo } from 'mongoose';
 const upload = multer({ storage: multer.memoryStorage() })
 // Export --------------------------------
 export function add_requests(app){
@@ -10,6 +11,7 @@ export function add_requests(app){
     app.post('/post/like', likePost);
     app.get('/post/get', getPost);
     app.get('/post/getAll', getAllPosts);
+    app.get('/post/getPostStream', getPostStream);
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
@@ -98,4 +100,32 @@ const getAllPosts = user_request(async (_, res, user) => {
         converted.push(post._id);
     }
     res.json({success: true, posts: converted});
+})
+//send -1 to start at the beginning of the feed, and youll get the 3 latest posts 
+//will also return a position number so you can send in that value next time to get the next 3
+//was gonna add blocking but we hit the rate limit so its gonna be hard to test when it takes 2 minutes to recieve 10 megs
+const getPostStream = user_request(async (req, res, user) => {
+    const posts = [];
+    let total = req.body.position;
+    try{
+        if (total == -1) {
+            total = await Post.countDocuments({});
+        }
+        console.log(total);
+        while (posts.length < 3) {
+            const post = await Post.findOne().skip(total-1);
+            const postObj = post.toObject();
+            if (post.image) {
+                const imageData = await Image.findById(post.image);
+                postObj.image = imageData ? imageData.data : null;
+            }
+            posts.push(postObj);
+            total--;
+            if (total < 0) break;
+        }
+    }catch(error){
+        console.error("error fetching posts:", error);
+        res.status(500).json({success: false, error: "Server error"});
+    }
+    res.json({success: true, posts: posts, position: total});
 })
