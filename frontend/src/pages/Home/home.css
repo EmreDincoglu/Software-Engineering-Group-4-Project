@@ -42,3 +42,11 @@
 .posting-page .post-list * .post-display{
     width: 15em;
 }
+.posting-page .post-list * .post-display .song-display{
+    color: white;
+    font-size: 75%;
+}
+.posting-page .post-list * .post-display .song-display img{
+    width: 2em;
+    height: 2em;
+}

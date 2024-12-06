@@ -63,7 +63,12 @@ class CreatePostPage extends React.Component{
         onChange={(img) => {this.setState({pic: img})}}
         limitRes={250000}
       />
-      <button onClick={this.post}>Post</button>
+      <div className='create-post-buttons'>
+        <button onClick={this.post}>Post</button>
+        <button onClick={() => {
+          this.setState({text: "", pic: null, song: null});
+        }}>Clear</button>
+      </div>
     </div>
   }
 }
