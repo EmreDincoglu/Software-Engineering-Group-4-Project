@@ -15,6 +15,7 @@ export function add_requests(app) {
     app.post('/user/spotify/connect/finish', finishConnection);
     app.get('/user/spotify/refresh', refresh);
     app.get('/spotify/search', search);
+    app.get('/spotify/getSong', getSong);
 }
 // given a user, gets the SpotifyAccount model from the db corresponding to it
 export async function getSpotifyData(id) {
@@ -110,4 +111,20 @@ const search = spotify_request(async (req, res, _user, spotify) => {
     );
     if (!result.success) {res.json({success: false, search_failed: true}); return;}
     res.json(result.data);
+});
+// search spotify api and return results
+const getSong = spotify_request(async (req, res, _user, spotify) => {
+    let result = await send_encoded_request(
+        `https://api.spotify.com/v1/tracks/${encodeURIComponent(req.query.id)}`, 
+        'GET', 
+        {'Authorization': `Bearer ${spotify.access_token}`}, 
+        null
+    );
+    if (!result.success) {res.json({success: false, search_failed: true}); return;}
+    res.json({success: true, song: {
+        name: result.data.name,
+        id: result.data.id,
+        image: result.data.album!=null? (result.data.album.images.length>0? result.data.album.images[0].url : null) : null,
+        artists: (result.data.artists??[]).map((artist) => ({name: artist.name, id: artist.id}))
+    }});
 });

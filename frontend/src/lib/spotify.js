@@ -30,6 +30,20 @@ export async function updateSpotifyToken(user, token) {
     desired_data: false
   });
 }
+export async function getSong(name) {
+  return await sendRequest({
+    url: `http://localhost:5000/spotify/getSong?id=${encodeURIComponent(name)}`,
+    method: 'GET',
+    credentials: true,
+    fail_conds: [
+      [{success: false, invalid_user: true}, "Invalid Session"],
+      [{success: false, no_spotify_account: true}, "No Connected Spotify Account"],
+      [{success: false, refresh_token_failed: true}, "Failed to refresh spotify token"],
+      [{success: false, search_failed: true}, "Failed to search"]
+    ],
+    desired_data: "song"
+  });
+}
 // Search spotify though the backend using search param, type of data, and item limit
 async function spotifySearch(search, type, limit){
   return await sendRequest({
@@ -52,10 +66,11 @@ export async function spotifySongSearch(searchParam){
   return {
     success: result.success, 
     fail_message: result.fail_message,
-    genres: result.data==null? [] : result.data.tracks.items.map((item) => ({
+    songs: result.data==null? [] : result.data.tracks.items.map((item) => ({
       name: item.name,
       id: item.id,
-      image: item.album!=null? (item.album.images.length>0? item.album.images[0].url : null) : null
+      image: item.album!=null? (item.album.images.length>0? item.album.images[0].url : null) : null,
+      artists: (item.artists??[]).map((artist) => ({name: artist.name, id: artist.id}))
     }))
   };
 }
