@@ -15,7 +15,8 @@ async function checkBlocked(userA, userB) {
 // Requires recipient: ObjectId and message: String
 const sendMessage = user_request(async (req, res, user) => {
     // ensure recipient does actually exist
-    const recipient = await User.findById(req.body.recipient);
+    let recipient = null;
+    try{recipient = await User.findById(req.body.recipient);}catch(_){}
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
     //check if users have blocked one another
     if(await checkBlocked(user, recipient)) {res.json({success: false, blocked: true}); return;}
@@ -37,7 +38,8 @@ const sendMessage = user_request(async (req, res, user) => {
 // Gets the messages between the current user and recipient: ObjectId
 const getMessages = user_request(async (req, res, user) => {
     // ensure recipient does actually exist
-    const recipient = await User.findById(req.query.user);
+    let recipient = null;
+    try{recipient = await User.findById(req.query.user);} catch(_){}
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
     //check if users have blocked one another
     if(await checkBlocked(user, recipient)) {res.json({success: false, blocked: true}); return;}
