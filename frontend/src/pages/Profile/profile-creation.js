@@ -85,7 +85,7 @@ const stepData = [
     input: "photo_set",
     count: 9,
     // 14mb limit, 4 bytes per pixel, 3.5M pixel limit, lowered to 2.6M due to 33% base64 overhead
-    limitRes: 2600000
+    limitRes: 250000
   }, {
     prompt: <h2>Upload A Profile Picture.</h2>,
     name: "profile_pic",

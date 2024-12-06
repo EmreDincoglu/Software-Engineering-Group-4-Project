@@ -8,7 +8,7 @@ export function add_requests(app){
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
-    return userA.checkBlocked(userB._id) || userB.checkBlocked(userA._id);
+    return userA.checkBlocked(userB._id.toString()) || userB.checkBlocked(userA._id.toString());
 }
 // Requests ---------------------------------
 // Sends a message to a specified user
@@ -37,7 +37,7 @@ const sendMessage = user_request(async (req, res, user) => {
 // Gets the messages between the current user and recipient: ObjectId
 const getMessages = user_request(async (req, res, user) => {
     // ensure recipient does actually exist
-    const recipient = await User.findById(req.body.recipient);
+    const recipient = await User.findById(req.query.user);
     if (!recipient) {res.json({success: false, invalid_recipient: true}); return;}
     //check if users have blocked one another
     if(await checkBlocked(user, recipient)) {res.json({success: false, blocked: true}); return;}

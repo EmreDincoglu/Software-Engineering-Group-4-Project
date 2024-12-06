@@ -100,7 +100,8 @@ class SpotifyInfo extends React.Component{
     </div>;}
     return <div className="spotify-info">
       <h1 className="section-title">Spotify Data</h1>
-
+      <p>Username: {this.props.user.spotify.username??"Unknown"}</p>
+      <button className="spotify-link-button" type="button" onClick={this.link}>ReLink Spotify Account</button>
     </div>;
   }
 }

@@ -57,7 +57,7 @@ export class ImageInput extends React.Component {
     return <div className="image-input">
       <label>
         <img 
-          src={this.props.value??this.props.fallback}
+          src={this.props.value??this.props.fallback??null}
           alt={this.props.alt}
         />
         <input 
@@ -132,7 +132,7 @@ export class StoredImage extends React.Component{
     getImage(id).then((result) => {
       if (id!==this.state.id){return;}
       let data = result.data??null;
-      if (data != null && data.substring(0, 4) != "data"){
+      if (data != null && data.substring(0, 4) !== "data"){
         data = "data:image/png;base64," + data;
       }
       this.setState({loadState: 2, image: data??null, id: id});

@@ -37,10 +37,9 @@ export async function getProfile(user_id) {
         method: 'GET',
         credentials: true,
         fail_conds: [
-            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, invalid_session: true}, "INVALID_SESSION"],
             [{success: false, invalid_user: true}, "INVALID_USER"],
             [{success: false, blocked: true}, "BLOCKED"],
-            [{success: false, not_created: true}, "NOT_CREATED"]
         ],
         desired_data: "profile"
     });
@@ -63,6 +62,31 @@ export async function updateProfile(profile_data) {
 /**
  * Post Requests
  */
+export async function createPost(text, image, song) {
+    return await sendRequest({
+        url: 'http://localhost:5000/post/create',
+        method: 'POST',
+        credentials: true,
+        body: {text: text, image: image, song: song},
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+        ],
+        desired_data: false
+    });
+}
+export async function likePost(post_id){
+    return await sendRequest({
+        url: 'http://localhost:5000/post/like',
+        method: 'POST',
+        credentials: true,
+        body: {post_id: post_id},
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, post_not_found: true}, "Post not Found"]
+        ],
+        desired_data: null
+    });
+}
 // Returns a post from a post id
 export async function getPost(post_id){
     let result = await sendRequest({
@@ -91,6 +115,36 @@ export async function getPostList(){
         desired_data: "posts"
     });
     return {success: result.success, fail_state: result.fail_message, posts: result.data};
+}
+/**
+ * Messages
+ */
+export async function getMessages(user_id){
+    return await sendRequest({
+        url: `http://localhost:5000/message/get?user=${encodeURIComponent(user_id)}`,
+        method: 'GET',
+        credentials: true,
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, invalid_recipient: true}, "Invalid Recipient"],
+            [{success: false, blocked: true}, "Blocked User"],
+        ],
+        desired_data: "messages"
+    });
+}
+export async function sendMessage(recipient, message){
+    return await sendRequest({
+        url: `http://localhost:5000/message/send`,
+        method: 'POST',
+        credentials: true,
+        body: {recipient: recipient, message: message},
+        fail_conds: [
+            [{success: false, invalid_session: true}, "Invalid Session"],
+            [{success: false, invalid_recipient: true}, "Invalid Recipient"],
+            [{success: false, blocked: true}, "Blocked User"],
+        ],
+        desired_data: false
+    });
 }
 /**
  * Image

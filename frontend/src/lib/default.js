@@ -54,12 +54,9 @@ export const withNavigate = WrappedComponent => props => {
   return <WrappedComponent {...props} navigate={navigate}/>;
 };
 // Component to call a method during rendering without react complaining
-export class MethodCaller extends React.Component{
-  constructor(props){
-    super(props);
-    (this.props.method??(()=>{}))();
-  }
-  render(){return <></>;}
+export const MethodCaller = props => {
+  props.method();
+  return <></>;
 }
 
 //Rexports
@@ -89,8 +86,12 @@ export {
   logoutUser,
   getProfile,
   updateProfile,
+  createPost,
+  likePost,
   getPost,
   getPostList,
+  getMessages,
+  sendMessage,
   getImage
 } from './backend';
 export {ImageInput, ImageSetInput, StoredImage} from './components/image';
