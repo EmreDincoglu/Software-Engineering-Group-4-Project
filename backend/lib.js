@@ -25,8 +25,9 @@ export async function send_encoded_request(url, method, headers, body) {
         let response = await fetch(url, {
             method: method,
             headers: headers,
-            body: new URLSearchParams(body)
+            body: body==null? null : new URLSearchParams(body)
         });
+        
         if (!response.ok) {
             return {success: false, fail_message: "HTTP Error: " + response.statusText};
         }

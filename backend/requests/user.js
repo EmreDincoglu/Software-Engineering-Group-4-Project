@@ -53,20 +53,20 @@ const deleteUser = user_request(async (req, res, user) => {
 // Return client side user information for a logged in user
 const getUserData = user_request(async (_, res, user) => {
     const spotify_data = await getSpotifyData(user._id);
-    let profile_data = await getProfileData(user);
+    const profile_data = await getProfileData(user);
     res.json({
         success: true, 
         user: {
-            username: user.username, 
-            email: user.email,
-            password: user.password,
             spotify: spotify_data,
             profile: profile_data,
-            following: user.following,
-            followers: user.followers,
-            blocked: user.blocked,
-            posts: user.posts,
-            liked: user.liked
+            username: user.username,
+            password: user.password,
+            email: user.email,
+            blocked: user.blocked??[],
+            following: user.following??[],
+            followers: user.followers??[],
+            posts: user.posts??[],
+            liked: user.liked??[]
         }
     });
 });
@@ -128,7 +128,7 @@ const followUser = user_request(async(req, res, user) => {
         res.json({ success: false, already_following: true });
     }
 });
-
+// Unfollow a user specified by user_id
 const unfollowUser = user_request(async (req, res, user) => {
     const unfollowedUser = await User.findById(req.body.user_id);
     if (!unfollowedUser) { res.json({ success: false, invalid_user: true }); return; }

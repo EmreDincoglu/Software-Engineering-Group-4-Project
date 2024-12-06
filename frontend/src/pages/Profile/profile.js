@@ -1,12 +1,12 @@
 import React from 'react';
-import {Link, Navigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import moment from 'moment';
-import {loggedInPage} from '../../lib/auth';
-import {withParams, withNavigate} from '../../lib/default';
-import {getProfile, followUser as followUserBackend, blockUser as blockUserBackend, unfollowUser as unfollowUserBackend} from '../../lib/backend';
+import {
+  loggedInPage, withNavigate, withParams,
+  getProfile, followUser as followUserBackend, blockUser as blockUserBackend, unfollowUser as unfollowUserBackend,
+  UserDisplay, PostDisplay, StoredImage
+} from '../../lib/default';
 import './profile.css';
-import { UserDisplay } from '../../lib/user';
-import { PostDisplay } from '../../lib/post';
 
 // State of the profile.
 const state = {
@@ -23,19 +23,16 @@ function calculate_age(birthdate){
   let years = moment(Date.now()).diff(moment(new Date(birthdate)), 'years');
   return Math.floor(years);
 }
-
 // Get day month year birthday string from date
 function get_birthday_string(birthdate){
   if (birthdate == null) {return null;}
   return (new Date(birthdate)).toDateString().substring(4);
 }
-
 // Get a string for a list of items, returns null if list is [] or null
 function get_list_string(list) {
   if (list == null || list.length === 0) {return null;}
   return list.join(", ");
 }
-
 // Returns html to display data with label, returns null when data is null
 function displayInfoItem(label, data){
   if (data == null) {return null;}
@@ -43,6 +40,15 @@ function displayInfoItem(label, data){
     <span>{label}</span>
     <span>{data}</span>
   </div>;
+}
+// Render a list of user ids as UserDisplays
+function renderUserList(list) {
+  return <>{list.map((id) => (<UserDisplay 
+    user={id}
+    alt="User"
+    fallback="/default_user.png"
+    clickable={true}
+  />))}</>;
 }
 
 class ProfilePage extends React.Component {
@@ -54,16 +60,12 @@ class ProfilePage extends React.Component {
       // id of the current user we are looking at. Null if we are looking at our own profile
       user: "unset",
       // profile data of the requested user.
-      profile: null,
-      goToCreate: false
+      profile: null
     };
     this.update = this.update.bind(this);
     this.followUser = this.followUser.bind(this);
     this.blockUser = this.blockUser.bind(this);
     this.messageUser = this.messageUser.bind(this);
-    this.renderFollowingList = this.renderFollowingList.bind(this);
-    this.renderFollowerList = this.renderFollowerList.bind(this);
-    this.renderPosts = this.renderPosts.bind(this);
     this.renderProfilePictures = this.renderProfilePictures.bind(this);
     this.renderProfile = this.renderProfile.bind(this);
     this.renderMessage = this.renderMessage.bind(this);
@@ -99,6 +101,7 @@ class ProfilePage extends React.Component {
   componentDidMount() {
     this.update();
   }
+  // follow/unfollow/block user
   async followUser(){
     if (this.props.user.following.includes(this.state.user)) {
       await unfollowUserBackend(this.state.user);
@@ -111,46 +114,16 @@ class ProfilePage extends React.Component {
     await blockUserBackend(this.state.user);
     this.props.updateUser();
   }
+  // redirect to message page
   async messageUser(){
     this.props.navigate("/message?user=" + this.state.user);
   }
-  renderFollowingList(){
-    return <div className='profile-following'>
-      <h1>Followed Users</h1>
-      {(this.state.profile.following??[]).map((id) => (<UserDisplay 
-        user={id}
-        alt="User"
-        fallback="/default_user.png"
-        clickable={true}
-      />))}
-    </div>;
-  }
-  renderFollowerList(){
-    return <div className='profile-following'>
-      <h1>Followers</h1>
-      {(this.state.profile.followers??[]).map((id) => (<UserDisplay 
-        user={id}
-        alt="User"
-        fallback="/default_user.png"
-        clickable={true}
-      />))}
-    </div>;
-  }
-  renderPosts(){
-    return <div className='profile-posts-body'>
-      <h1>Posts</h1>
-      <div className='profile-posts'>
-        {this.state.profile.posts??[].map((id, i) => (<PostDisplay
-          post={id}
-        />))}
-      </div>
-    </div>;
-  }
+  // Render Methods
   renderProfilePictures(){
-    return <>{(this.state.profile.photos??[]).map((photo, i) => (<img
+    return <>{(this.state.profile.photos??[]).map((photo, i) => (<StoredImage
       className='profile-photo'
       key={i}
-      src={photo}
+      image={photo}
       alt={"Photo " + (i+1)}
     />))}</>;
   }
@@ -160,10 +133,11 @@ class ProfilePage extends React.Component {
       <div className='profile-info'>
         <div className='profile-bio'>
           <div className='profile-header'>
-            <img 
+            <StoredImage 
               className='profile-picture'
-              src={profile.profile_pic??"/default_user.png"}
+              image={profile.profile_pic??null}
               alt="Profile"
+              fallback="/default_user.png"
             />
             <div className='profile-name'>
               <h1>{profile.name}</h1>
@@ -194,7 +168,7 @@ class ProfilePage extends React.Component {
         {editable? (
           <button 
             className='profile-edit-button'
-            onClick={() => {this.setState({goToCreate: true})}}
+            onClick={() => {this.props.navigate('/profile-creation')}}
           >Edit Profile</button>
         ) : (<>
           <button onClick={this.followUser}>{
@@ -237,15 +211,25 @@ class ProfilePage extends React.Component {
     </div>;
   }
   render() {
-    if (this.state.goToCreate) {return <Navigate to='/profile-creation'/>;}
-    if (this.state.state === state.LOADED) {return <div className='profile-page'>
+    if (this.state.state !== state.LOADED) {return this.renderMessage();}
+    return <div className='profile-page'>
       <div className='grid-background'/>
       {this.renderProfile(this.state.user===null)}
-      {this.renderFollowingList()}
-      {this.renderFollowerList()}
-      {this.renderPosts()}
-    </div>;}
-    return this.renderMessage();
+      <div className='profile-follows'>
+        <h1>Followed Users</h1>
+        {renderUserList(this.state.profile.following??[])}
+      </div>
+      <div className='profile-follows'>
+        <h1>Followers</h1>
+        {renderUserList(this.state.profile.followers??[])}
+      </div>
+      <div className='profile-posts-body'>
+        <h1>Posts</h1>
+        <div className='profile-posts'>
+          {(this.state.profile.posts??[]).map((id, i) => <div key={i}><PostDisplay user={this.props.user} post={id}/></div>)}
+        </div>
+      </div>
+    </div>;
   }
 }
 const WrappedProfilePage = loggedInPage(withParams(withNavigate(ProfilePage)));

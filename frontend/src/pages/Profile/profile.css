@@ -210,7 +210,7 @@
     background-color: rgb(170, 111, 0);
 }
 /*User follow list*/
-.profile-following{
+.profile-follows{
     display: flex;
     flex-direction: column;
     gap: 0.5em;
@@ -222,17 +222,17 @@
     padding: 1em;
     overflow-y: scroll;
 }
-.profile-following h1{
+.profile-follows h1{
     font-size: 100%;
     text-align: center;
     border-bottom: 1px solid white;
 }
-.profile-following .user-display{
+.profile-follows .user-display{
     font-size: 100%;
     gap: 1em;
     cursor: pointer;
 }
-.profile-following .user-display:hover{
+.profile-follows .user-display:hover{
     border: 1px solid white;
     border-radius: 0.5em;
     background-color: rgba(255, 255, 255, 0.24);
@@ -249,4 +249,17 @@
 }
 .profile-posts-body h1{
     border-bottom: 1px solid white;
+}
+
+.profile-posts{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    gap: 1em;
+    font-size: 200%;
+}
+.profile-posts .post-display{
+    width: 20em;
 }
