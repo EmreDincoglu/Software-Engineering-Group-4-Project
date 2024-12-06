@@ -68,6 +68,7 @@ export {
 export {
   authSpotify, 
   updateSpotifyToken, 
+  getSong,
   spotifySongSearch, 
   spotifyGenreSearch, 
   spotifyArtistSearch
@@ -97,3 +98,4 @@ export {
 export {ImageInput, ImageSetInput, StoredImage} from './components/image';
 export {PostDisplay} from './components/post';
 export {UserDisplay} from './components/user';
+export {SongDisplay} from './components/song';

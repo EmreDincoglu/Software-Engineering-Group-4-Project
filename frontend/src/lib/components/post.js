@@ -1,6 +1,6 @@
 import React from "react";
 import "./post.css";
-import { getPost, StoredImage, MethodCaller, UserDisplay, likePost } from "../default";
+import { getPost, StoredImage, MethodCaller, UserDisplay, likePost, SongDisplay } from "../default";
 
 function dateString(date){
   date = new Date(date);
@@ -70,7 +70,7 @@ export class PostDisplay extends React.Component {
       </div>
       <p className="post-date">Posted: {dateString(this.state.post.date)}</p>
       {this.state.post.song!=null&&<div className="post-song">
-        <p>{this.state.post.song}</p>
+        <SongDisplay song_id={this.state.post.song}/>
       </div>}
       {this.state.post.image!=null&&<StoredImage 
         className="post-image"
