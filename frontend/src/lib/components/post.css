@@ -5,6 +5,9 @@
     border: 1px solid white;
     border-radius: 1em;
 }
+.post-user-likes .user-display .user-display-render{
+    cursor: pointer;
+}
 .post-user-likes{
     display: flex;
     flex-direction: row;
@@ -25,8 +28,13 @@
     color: white;
     border: 1px solid white;
     border-radius: 0.25em;
-    padding-bottom: 0.25em;
     margin: auto 0;
+    cursor: pointer;
+    padding: 0.1em 0.25em 0.25em 0.25em;
+    font-size: 100%;
+}
+.post-like-button:hover{
+    background-color: hotpink;
 }
 .post-date{
     font-size: 50%;

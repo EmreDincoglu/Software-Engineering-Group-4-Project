@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ImageInput, createPost, loggedInPage, withNavigate } from '../../lib/default';
 
 const SongPicker = ({ onSongSelect }) => {
     const [songQ, setSongQ] = useState('');
@@ -40,70 +40,50 @@ const SongPicker = ({ onSongSelect }) => {
     )
 }
 
-function CreatePost() {
-    const [desc, setDesc] = useState('');
-    const [postpic, setPostpic] = useState(null);
-    const [song_id, set_song_id] = useState('');
-    const navigate = useNavigate();
-
-    const handleImageUpload = (event) => {
-        const file = event.target.files[0];
-        if (file){
-           setPostpic(file);
-        }
+class CreatePostPage extends React.Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      posting: false,
+      text: "",
+      pic: null,
+      song: ""
+    };
+    this.post = this.post.bind(this);
+  }
+  async post(){
+    if (this.state.posting){return;}
+    else if (this.state.text==="" && this.state.pic == null && this.state.song==="") {return;}
+    this.setState({posting: true});
+    // Post the data to the backend
+    let text = this.state.text; if(text==="") {text = null;}
+    let song = this.state.song; if(song==="") {song = null;}
+    let pic = this.state.pic;
+    let result = await createPost(text, pic, song);
+    // interpret success
+    if (!result.success) {
+      alert("Failed to create post: " + result.fail_message);
+      this.setState({posting: false});
+      return;
     }
-
-    const handleSongSelect = (id) => {
-        set_song_id(id);
-    }
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        if(desc) formData.append('text',desc);
-        if(song_id) formData.append('song_id',song_id);
-        formData.append('image',postpic);
-        try{
-            const response = await fetch('http://localhost:5000/post/create', {
-                method: 'POST',
-                credentials: 'include',
-                body: formData,
-            });
-            if (!response.ok){
-                throw new Error('something went wrong');
-            }
-            const data = await response.json();
-            console.log('posted!', data);
-            navigate('/home');
-        }catch (error){
-            console.error("error submitting post: ", error);
-        }
-    }
-
-    return (
-        <div className ="create-post">
-            <h2>What are you up to?</h2>
-            <form onSubmit={handleSubmit}>
-                <textarea
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                    placeholder={"What are we thinking about?"}></textarea>
-                <br />
-                <div className = "song-select-container">
-                    <SongPicker onSongSelect={handleSongSelect}/>
-                    <br/>
-                </div>
-                <input
-                    type="file"
-                    id="fileInput"
-                    onChange={handleImageUpload}
-                    placeholder={"What are we up to today?"}
-                    required/>
-                    <button type="submit">Post</button>
-            </form>
-        </div>
-    )
+    this.props.navigate("/home");
+  }
+  render(){
+    if (this.state.posting) {return <div className='create-post'>Posting...</div>;}
+    return <div className='create-post'>
+      <textarea
+        value={this.state.text}
+        onChange={(e) => {this.setState({text: e.target.value})}}
+        placeholder='What are we thinking about?'
+      />
+      <ImageInput 
+        value={this.state.pic}
+        alt="Attach Photo"
+        onChange={(img) => {this.setState({pic: img})}}
+        limitRes={250000}
+      />
+      <button onClick={this.post}>Post</button>
+    </div>
+  }
 }
-
-export default CreatePost;
+export default loggedInPage(withNavigate(CreatePostPage));

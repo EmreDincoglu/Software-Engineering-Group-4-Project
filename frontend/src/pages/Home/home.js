@@ -1,6 +1,6 @@
 import "./home.css";
 import { loggedInPage, getPostList, MethodCaller, PostDisplay, withNavigate } from "../../lib/default";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 class PostingPage extends React.Component{
   constructor(props) {

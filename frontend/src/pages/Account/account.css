@@ -168,3 +168,7 @@ input.account-field-value{
     background: hotpink;
     color: white;
 }
+.spotify-info p{
+    font-size: 150%;
+    font-weight: bold;
+}

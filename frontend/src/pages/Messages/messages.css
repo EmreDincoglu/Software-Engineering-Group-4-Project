@@ -1,0 +1,106 @@
+.message-page{
+    width: 100%;
+    font-size: min(5vw, 3vh);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1em;
+    padding-top: 1em;
+}
+
+.message-follows{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    width: 10em;
+    max-height: 35em;
+    min-height: 10em;
+    height: min-content;
+    border: 1px solid white;
+    border-radius: 1em;
+    padding: 1em;
+    overflow-y: scroll;
+    font-size: 90%;
+}
+.message-follows h1{
+    font-size: 100%;
+    text-align: center;
+    border-bottom: 1px solid white;
+}
+.message-follows .user-display{
+    font-size: 75%;
+    gap: 1em;
+}
+.message-follows .user-display .user-display-render{
+    cursor: pointer;
+}
+.message-follows .user-display:hover{
+    border: 1px solid white;
+    border-radius: 0.5em;
+    background-color: rgba(255, 255, 255, 0.24);
+}
+
+.messaging-window{
+    width: 20em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    max-height: 80vh;
+    gap: 0.5em;
+}
+.messaging-window .user-display .user-display-render{
+    cursor: pointer;
+}
+.messaging-window .user-display:hover{
+    border: 1px solid white;
+    border-radius: 0.5em;
+    background-color: rgba(255, 255, 255, 0.24);
+}
+
+.message-list{
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    border: 1px solid white;
+    border-radius: 0.3em;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    gap: 0.1em;
+    font-size: 100%;
+    padding: 0.3em;
+}
+.message-list .message#recieved{
+    margin-right: auto;
+    color: hotpink;
+}
+.message-list .message#sent{
+    margin-left: auto;
+    color: limegreen;
+}
+.message-list .message{
+    max-width: 80%;
+    text-wrap: wrap;
+}
+
+.message-input{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+    justify-content: center;
+}
+.message-input button{
+    color: white;
+    background: limegreen;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    font-size: 100%;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0.1em 0.25em;
+}
+.message-input button:hover{
+    background: hotpink;
+}

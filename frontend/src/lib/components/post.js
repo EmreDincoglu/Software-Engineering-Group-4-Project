@@ -1,6 +1,6 @@
 import React from "react";
 import "./post.css";
-import { getPost, StoredImage, MethodCaller, UserDisplay } from "../default";
+import { getPost, StoredImage, MethodCaller, UserDisplay, likePost } from "../default";
 
 function dateString(date){
   date = new Date(date);
@@ -19,6 +19,7 @@ export class PostDisplay extends React.Component {
     };
     this.setPost = this.setPost.bind(this);
     this.loadPost = this.loadPost.bind(this);
+    this.like = this.like.bind(this);
   }
   setPost(){
     if (this.state.id !== this.props.post) {
@@ -32,6 +33,16 @@ export class PostDisplay extends React.Component {
     getPost(id).then((result) => {
       if (id!==this.state.id){return;}
       this.setState({loadState: 2, post: result.post??null, id: id});
+    });
+  }
+  like(){
+    if (this.state.loadState!==2){return}
+    likePost(this.state.id).then((result) => {
+      if (!result.success) {return;}
+      let post = this.state.post;
+      post.likes = result.data.likes;
+      post.liked = result.data.liked;
+      this.setState({post: post});
     });
   }
   render() {
@@ -51,9 +62,9 @@ export class PostDisplay extends React.Component {
           clickable={true}
         />
         <div className="post-likes">
-          <p className="post-like-button">
+          <button className="post-like-button" onClick={this.like}>
             {this.state.post.liked? "Liked" : "Like"}
-          </p>
+          </button>
           <p>{this.state.post.likes}</p>
         </div>
       </div>

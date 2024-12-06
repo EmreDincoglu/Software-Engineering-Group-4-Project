@@ -69,7 +69,7 @@ export async function spotifyGenreSearch(searchParam){
   };
 }
 // Searches the spotify API for 10 artists
-export async function spotifyArtistSearch(searchParam, token){
+export async function spotifyArtistSearch(searchParam){
   let result = await spotifySearch(searchParam, "artist", "10");
   return {
     success: result.success, 

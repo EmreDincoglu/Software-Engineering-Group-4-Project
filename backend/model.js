@@ -194,6 +194,7 @@ schemas.spotify = new Schema({
     access_token: {type: String, required: true},
     refresh_token: {type: String, required: true},
     date: {type: Date, required: true},
+    username: String
 });
 schemas.spotify.methods = {
     isOld: function() {

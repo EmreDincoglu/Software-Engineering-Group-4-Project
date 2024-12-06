@@ -54,6 +54,7 @@ class UserDisplayInner extends React.Component {
         </div>
         {this.props.clickable? 
           <button className="user-display-button" onClick={() => {
+            if (this.props.onClick!=null) {this.props.onClick(); return;}
             this.props.navigate("/profile?user=" + this.props.user)
           }}/>:
           <button className="user-display-button"/>

@@ -31,6 +31,7 @@ export function spotify_request(method) {
         let spotify = await SpotifyAccount.findById(user._id);
         if (spotify == null) {res.json({success: false, no_spotify_account: true}); return;}
         if (spotify.isOld() && !await spotify.refresh()) {
+            await SpotifyAccount.findByIdAndDelete(spotify._id);
             res.json({success: false, refresh_token_failed: true}); return;
         }
         return await method(req, res, user, spotify);
@@ -82,6 +83,17 @@ const finishConnection = user_request(async (req, res, user) => {
         date: Date.now()
     });
     await spotify_doc.save();
+    // get username
+    let result = await send_encoded_request(
+        `https://api.spotify.com/v1/me`, 
+        'GET', 
+        {'Authorization': `Bearer ${spotify_doc.access_token}`}, 
+        null
+    );
+    if (result.success) {
+        spotify_doc.username = result.data.display_name;
+        await spotify_doc.save();
+    }
     res.json({success: true});
 });
 // refresh the spotify token and return new date and token

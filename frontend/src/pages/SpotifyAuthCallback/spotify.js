@@ -14,7 +14,7 @@ class SpotifyCallbackPage extends React.Component {
       return;
     }
     // Upload the token, alerting user on failure, then redirect to homepage
-    updateSpotifyToken(state, code).finally((result) => {
+    updateSpotifyToken(state, code).then((result) => {
       if (!result.success) {
         alert("Failed: " + result.error_message);
         this.props.navigate("/home");
