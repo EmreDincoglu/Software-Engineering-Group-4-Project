@@ -141,7 +141,7 @@ class ProfilePage extends React.Component {
             />
             <div className='profile-name'>
               <h1>{profile.name}</h1>
-              <h2>@{this.props.user.username}</h2>
+              <h2>@{profile.username}</h2>
             </div>
           </div>
           <div className='profile-age'>
