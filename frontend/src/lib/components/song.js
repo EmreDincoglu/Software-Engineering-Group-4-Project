@@ -42,7 +42,7 @@ export class SongDisplay extends React.Component{
     }
     if (this.state.loadState===0) {return <MethodCaller method={this.loadSong}/>;}
     if (this.state.loadState===1) {return <div className='song-display'>Loading...</div>;}
-    let image = this.props.song.image??null;
+    let image = this.state.song.image??null;
     return <div className='song-display'>
       {image!=null&&<img 
         src={image}
