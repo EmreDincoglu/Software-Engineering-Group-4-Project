@@ -1,4 +1,5 @@
-import sinon from "sinon";
+import { open_test_environment, close_test_environment } from "../environment.js";
+
 import { expect } from "chai";
 import express from "express";
 import request from "supertest-as-promised";
@@ -6,24 +7,8 @@ import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 const { json } = bodyParser;
 
-import { mock_Connection } from "../Mocks/mock_Connection.js";
-import { mock_Schema } from "../Mocks/mock_Schema.js";  
-import mongoose from "mongoose";
 
-
-
-const mongoose_stubs = {
-    createConnection: function (...args) {
-        return new mock_Connection();
-    },
-    Schema: function () {
-        return mock_Schema;
-    }
-}
-
-sinon.replace(mongoose, 'createConnection', mongoose_stubs.createConnection);
-sinon.replace(mongoose, 'Schema', mongoose_stubs.Schema());
-
+open_test_environment();
 const { add_requests } = await import('../../requests/default.js');
 
 describe('createUser', () => {
@@ -94,6 +79,6 @@ describe('createUser', () => {
     });
 
     after(async () => {
-        sinon.restore();
+        close_test_environment();
     });
 });

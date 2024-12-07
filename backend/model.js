@@ -180,7 +180,7 @@ schemas.user.methods = {
 };
 schemas.user.statics = {
     create_new: function(data) {
-        return new (databases.users.model('UserAccount'))({
+        return new (databases.heartbeatz.model('UserAccount'))({
             username: data.username,
             _lc_uname: data.username.toLowerCase(),
             email: data.email.toLowerCase(),
