@@ -9,11 +9,11 @@ import moment from 'moment';
 import { send_encoded_request } from './lib.js';
 import { CLIENT_ENCODED } from './requests/spotify.js';
 
+// Database Definition
 const databases = {
     heartbeatz: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
     messages: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0'),
 };
-
 
 // Helper Methods
 const StringValidationNamespace = {
@@ -180,7 +180,7 @@ schemas.user.methods = {
 };
 schemas.user.statics = {
     create_new: function(data) {
-        return (databases.heartbeatz.model('UserAccount'))({
+        return databases.heartbeatz.model('UserAccount')({
             username: data.username,
             _lc_uname: data.username.toLowerCase(),
             email: data.email.toLowerCase(),
@@ -191,7 +191,7 @@ schemas.user.statics = {
             posts: [],
             liked: [],
         });
-    },
+    }
 };
 models.user = databases.heartbeatz.model('UserAccount', schemas.user);
 
@@ -280,7 +280,6 @@ schemas.message = new Schema({
     recipient: { type: String, required: true }
 });
 
-
 // Posts
 schemas.post = new Schema({
     user: {type: Types.ObjectId, required: true},
@@ -323,7 +322,6 @@ schemas.image.statics = {
     }
 };
 models.image = databases.heartbeatz.model('Image', schemas.image);
-
 
 // Exports
 export {databases, schemas, models};
