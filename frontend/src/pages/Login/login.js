@@ -1,7 +1,6 @@
 import React from "react";
 import './login.css';
-import { createUser, loginUser } from '../../lib/backend';
-import { loggedOutPage } from "../../lib/auth";
+import { createUser, loginUser, loggedOutPage } from '../../lib/default';
 
 class LoginPage extends React.Component {
   constructor(props){
@@ -19,28 +18,27 @@ class LoginPage extends React.Component {
     this.handleRegister = this.handleRegister.bind(this);
     this.swapLogin = this.swapLogin.bind(this);
   }
-
+  // input field onChange handlers
   fieldChangeHandler(event) {
     this.setState({[event.target.attributes.field.nodeValue]: event.target.value});
   }
   checkboxFieldChangeHandler(event) {
     this.setState({[event.target.attributes.field.nodeValue]: event.target.checked});
   }
+  // Async methods to login or register a user
   async handleLogin(event) {
     event.preventDefault();
-    const creds = {username: this.state.username, password: this.state.password};
-    const result = await loginUser(creds);
-    console.log(result);
-    if (!result.success) {console.log("DEBUG"); alert(result.fail_message); return;}
+    const result = await loginUser(this.state.username, this.state.password);
+    if (!result.success) {alert(result.fail_message); return;}
     this.props.updateUser();
   }
   async handleRegister(event) {
     event.preventDefault();
-    const creds = {username: this.state.username, password: this.state.password, email: this.state.email};
-    const result = await createUser(creds);
+    const result = await createUser(this.state.username, this.state.password, this.state.email);
     if (!result.success) {alert(result.fail_message); return;}
     this.props.updateUser();
   }
+  // Switch login page type
   swapLogin() {
     this.setState({
       isLogin: !this.state.isLogin,
@@ -49,51 +47,15 @@ class LoginPage extends React.Component {
       email: ''
     });
   }
-
+  // render the page
   render() {
-    if (this.state.isLogin) { return (<>
-      <div className= "grid-background"></div>
+    const isLogin = this.state.isLogin;
+    return <>
+      <div className="grid-background"/>
       <div className="login-body">
-        <form onSubmit={this.handleLogin ? this.handleLogin : this.handleRegister}>
-          <h1>Login</h1>
-          <input 
-            type="text" 
-            className="input-box" 
-            placeholder='Username / Email' 
-            value={this.state.username}
-            field="username" 
-            onChange={this.fieldChangeHandler} 
-            required 
-          />
-          <input 
-            type={this.state.show_password? "text" : "password"} 
-            className="input-box" 
-            placeholder='Password' 
-            value={this.state.password}
-            field="password" 
-            onChange={this.fieldChangeHandler} 
-            required 
-          />
-          <div className="forgot-password">
-            <label>
-              <input type="checkbox" field="show_password" onChange={this.checkboxFieldChangeHandler}/> 
-                Show Password
-            </label>
-            <span>Forgot Password</span>
-          </div>
-          <button type="submit">Login</button>
-          <p className="register-link">
-            Don't have an account?
-            <span onClick={this.swapLogin}> Sign Up</span>
-          </p>
-        </form>
-      </div>
-    </>);}else { return (<>
-      <div className = "grid-background"></div>
-      <div className="login-body">
-        <form onSubmit={this.handleRegister}>
-          <h1>Sign Up</h1>
-          <input 
+        <form onSubmit={isLogin? this.handleLogin : this.handleRegister}>
+          <h1>{isLogin? "Login" : "Sign Up"}</h1>
+          {(!isLogin)&&<input 
             type="email" 
             className="input-box" 
             placeholder='Email' 
@@ -101,18 +63,18 @@ class LoginPage extends React.Component {
             field="email" 
             onChange={this.fieldChangeHandler} 
             required 
-          />
+          />}
           <input 
             type="text" 
             className="input-box" 
-            placeholder='Username'
+            placeholder={isLogin? 'Username / Email' : 'Username'} 
             value={this.state.username}
             field="username" 
             onChange={this.fieldChangeHandler} 
             required 
           />
           <input 
-            type="text" 
+            type={(this.state.show_password||!isLogin)? "text" : "password"} 
             className="input-box" 
             placeholder='Password' 
             value={this.state.password}
@@ -120,14 +82,20 @@ class LoginPage extends React.Component {
             onChange={this.fieldChangeHandler} 
             required 
           />
-          <button type="submit">Sign Up</button>
+          {isLogin&&<div className="forgot-password">
+            <label>
+              <input type="checkbox" field="show_password" onChange={this.checkboxFieldChangeHandler}/> 
+              Show Password
+            </label>
+          </div>}
+          <button type="submit">{this.isLogin? "Login" : "Sign Up"}</button>
           <p className="login-link">
-            Already have an account? 
-            <span onClick={this.swapLogin}> Login</span>
+            {this.isLogin? "Don't have an account? " : "Already have an account? "}
+            <span onClick={this.swapLogin}>{this.isLogin? "Sign Up" : "Login"}</span>
           </p>
         </form>
       </div>
-    </>);}
+    </>;
   }
 }
 export default loggedOutPage(LoginPage);

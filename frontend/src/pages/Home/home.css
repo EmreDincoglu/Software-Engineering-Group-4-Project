@@ -1,7 +1,44 @@
-.title{
-    text-align: center;
-    justify-content: center;
+.posting-page{
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
     align-items: center;
-    margin-top: 4vw;
-    padding-top: 30vh;
+    gap: 1em;
+    padding-top: 1em;
+    font-size: min(5vw, 3vh);
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.posting-page .post-button{
+    font-size: 100%;
+    color: white;
+    background-color: limegreen;
+    border: 1px solid white;
+    border-radius: 0.2em;
+    padding: 0 0.3em;
+    cursor: pointer;
+}
+.posting-page .post-button:hover{
+    background-color: hotpink;
+}
+
+.posting-page h2{
+    margin-top: 1em;
+    font-size: 75%;
+}
+
+.posting-page .post-list{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    gap: 1em;
+    font-size: 100%;
+    margin-bottom: 10em;
+}
+
+.posting-page .post-list * .post-display{
+    width: 15em;
 }

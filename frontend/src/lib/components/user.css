@@ -1,0 +1,21 @@
+.user-display{
+    font-weight: 600;
+}
+.user-display-render{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    gap: 0.5em;
+}
+.user-display-icon{
+    height: 1.5em;
+    border-radius: 50%;
+}
+.user-display-name{
+    color: white;
+    text-wrap: nowrap;
+}
+.user-display-button{
+    display: none;
+}

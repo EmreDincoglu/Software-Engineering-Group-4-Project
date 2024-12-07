@@ -1,0 +1,14 @@
+.song-display{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: center;
+    color: black;
+    font-size: 100%;
+    gap: 1em;
+}
+.song-display img{
+    width: 3em;
+    height: 3em;
+    border-radius: 50%;
+}

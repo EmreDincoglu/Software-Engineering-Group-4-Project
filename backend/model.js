@@ -1,33 +1,19 @@
 // Imports
 import mongoose from 'mongoose';
-import moment from 'moment';
 
 const createConnection = mongoose.createConnection;
 const Schema = mongoose.Schema;
 const Types = mongoose.Types;
 
-// Database definition
-const databaseConnections = {
-    connectionString: 'mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW',
-    clusterName: 'cluster0.17oni.mongodb.net',
-    options: 'retryWrites=true&w=majority&appName=Cluster0',
+import moment from 'moment';
+import { send_encoded_request } from './lib.js';
+import { CLIENT_ENCODED } from './requests/spotify.js';
 
-    getURI: (dbName) => {
-        return  databaseConnections.connectionString + '@' + 
-                databaseConnections.clusterName + '/' + 
-                dbName + '?' + 
-                databaseConnections.options;
-    },
-};
 const databases = {
-    // <connectionString>@<clusterName>/<database name>?<options>
-    users: createConnection(databaseConnections.getURI('HeartBeatz')),
-    messages: createConnection(databaseConnections.getURI('Messages')),
-    posts: createConnection(databaseConnections.getURI('userPosts')),
-    liked: createConnection(databaseConnections.getURI('userLiked')),
-    blocked: createConnection(databaseConnections.getURI('userBlocked')),
-    follows: createConnection(databaseConnections.getURI('userFriends')),
+    heartbeatz: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
+    messages: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0'),
 };
+
 
 // Helper Methods
 const StringValidationNamespace = {
@@ -128,12 +114,12 @@ schemas.user = new Schema({
 });
 schemas.user.methods = {
     checkUniqueUsername: async function() {
-        let found = await databases.users.model('UserAccount').findOne({_lc_uname: this._lc_uname});
+        let found = await databases.heartbeatz.model('UserAccount').findOne({_lc_uname: this._lc_uname});
         if (found != null && found.id != this.id) {return false;}
         return true;
     },
     checkUniqueEmail: async function() {
-        let found = await databases.users.model('UserAccount').findOne({email: this.email});
+        let found = await databases.heartbeatz.model('UserAccount').findOne({email: this.email});
         if (found != null && found.id != this.id) {return false;}
         return true;
     },
@@ -186,7 +172,10 @@ schemas.user.methods = {
     },
     // Determines if this user has blocked user_id
     checkBlocked: async function(user_id) {
-        return (this.blocked??[]).includes(user_id);
+        for (const id of (this.blocked??[])){
+            if (id.toString() === user_id) {return true;}
+        }
+        return false;
     }
 };
 schemas.user.statics = {
@@ -204,43 +193,84 @@ schemas.user.statics = {
         });
     },
 };
-models.user = databases.users.model('UserAccount', schemas.user);
+models.user = databases.heartbeatz.model('UserAccount', schemas.user);
 
 // Spotify
 schemas.spotify = new Schema({
-    user: {type: Types.ObjectId, required: true},
     access_token: {type: String, required: true},
     refresh_token: {type: String, required: true},
     date: {type: Date, required: true},
+    username: String
 });
-models.spotify = databases.users.model('SpotifyAccount', schemas.spotify);
+schemas.spotify.methods = {
+    isOld: function() {
+        return moment(Date.now()).diff(moment(this.date), 'minutes') > 40.0;
+    },
+    refresh: async function() {
+        let response = await send_encoded_request(
+            "https://accounts.spotify.com/api/token",
+            "POST",
+            {// headers
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Basic ' + CLIENT_ENCODED
+            },
+            {// body
+                grant_type: 'refresh_token',
+                refresh_token: this.refresh_token
+            }
+        );
+        if (!response.success) {return false;}
+        if (response.data.access_token == null || response.data.refresh_token == null) {false}
+        this.access_token = response.data.access_token;
+        this.refresh_token = response.data.refresh_token??response.data.access_token;
+        this.date = Date.now();
+        await this.save();
+        return true;
+    }
+};
+models.spotify = databases.heartbeatz.model('SpotifyAccount', schemas.spotify);
 
 // Profile
 schemas.profile = new Schema({
-    user: {type: Types.ObjectId, required: true},
-    pref_name: String,
+    // personal info
+    name: String,
     birthday: Date,
     gender: String,
-    sexual_orientation: String,
-    gender_preference: [String],
-    relationship_goals: String,
-    favorite_genres: [String],
-    favorite_artists: [String],
-    photos: [String],
-    profile_pic: String
+    sexuality: String,
+    gender_pref: [String],
+    goals: String,
+    // music preference
+    genres: [String],
+    artists: [String],
+    // photos
+    photos: [Types.ObjectId],
+    profile_pic: Types.ObjectId
 });
 schemas.profile.statics = {
     create_new: function(user_id) {
-        return new databases.users.model('UserProfile')({
-            user: user_id,
-            gender_preference: [],
-            favorite_genres: [],
-            favorite_artists: [],
+        return new databases.heartbeatz.model('UserProfile')({
+            _id: user_id,
+            gender_pref: [],
+            genres: [],
+            artists: [],
             photos: [],
         });
+    },
+    get_standard_keys: function() {
+        return ["name", "birthday", "gender", "sexuality", "gender_pref", "goals", "genres", "artists"];
+    },
+    delete_full: async function(id) {
+        let profile = await databases.heartbeatz.model('UserProfile').findById(id);
+        if (profile == null) {return;}
+        let model = databases.heartbeatz.model('Image');
+        for (const photo of profile.photos){
+            await model.findByIdAndDelete(photo);
+        }
+        if (profile.profile_pic != null) {await model.findByIdAndDelete(profile.profile_pic);}
+        await databases.heartbeatz.model('UserProfile').findByIdAndDelete(profile._id);
     }
 };
-models.profile = databases.users.model('UserProfile', schemas.profile);
+models.profile = databases.heartbeatz.model('UserProfile', schemas.profile);
 
 // Messages
 schemas.message = new Schema({
@@ -253,14 +283,46 @@ schemas.message = new Schema({
 
 // Posts
 schemas.post = new Schema({
-    user_ID: {type: Types.ObjectId, required: true},
+    user: {type: Types.ObjectId, required: true},
     date: {type: Date, required: true},
     likes: {type: Number, required: true},
-    desc: String,
-    song_id: String,
-    post_image: String
+    text: String,
+    song: String,
+    image: Types.ObjectId,
 });
-models.post = databases.posts.model('Post', schemas.post);
+models.post = databases.heartbeatz.model('Post', schemas.post);
+
+//Images
+schemas.image = new Schema({
+    data: {type: String, required: true}
+});
+schemas.image.statics = {
+    convert: async function(data) {
+        const image = databases.heartbeatz.model('Image')({data: data});
+        await image.save();
+        return image;
+    },
+    convert_list: async function(list) {
+        let converted = [];
+        for (const element of list){
+            let data = databases.heartbeatz.model('Image')({data: element});
+            await data.save();
+            converted.push(data);
+        }
+        return converted;
+    },
+    get: async function(id) {
+        return await databases.heartbeatz.model('Image').findById(id);
+    },
+    get_list: async function(list) {
+        let converted = [];
+        for (const id of list) {
+            converted.push(await databases.heartbeatz.model('Image').findById(id));
+        }
+        return converted;
+    }
+};
+models.image = databases.heartbeatz.model('Image', schemas.image);
 
 
 // Exports
@@ -268,5 +330,6 @@ export {databases, schemas, models};
 export const User = models.user;
 export const Profile = models.profile;
 export const Post = models.post;
+export const Image = models.image;
 export const SpotifyAccount = models.spotify;
 

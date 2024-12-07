@@ -1,138 +1,121 @@
 import React from 'react';
+import { 
+  UserDisplay, getMessages, MethodCaller,
+  loggedInPage, sendMessage, withParams 
+} from '../../lib/default';
+import './messages.css';
 
-class MessageBox extends React.Component {
-    render() {
-        return (
-            <li className={`message ${this.props.appearance} appeared`}>
-                <div className="text_wrapper">
-                    <div className="text">{this.props.message}</div>
-                </div>
-            </li>
-        );
-    }
+function renderUserList(list, onClick) {
+  return <>{list.map((id, i) => (<div key={i}><UserDisplay 
+    user={id}
+    alt="User"
+    fallback="/default_user.png"
+    clickable={true}
+    onClick={onClick(id)}
+  /></div>))}</>;
 }
 
-class MessagesContainer extends React.Component {
-    render() {
-        return (
-            <ul className="messages">
-                {this.props.messages.map((msg, index) => (
-                    <MessageBox
-                        key={index}
-                        appearance={msg.sender === this.props.userId ? "sent" : "received"}
-                        message={msg.message}
-                    />
-                ))}
-            </ul>
-        );
+class MessagePage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      loadState: 0,
+      recipient: null,
+      messages: [],
+      current_message: ""
+    };
+    this.setRecipient = this.setRecipient.bind(this);
+    this.loadMessages = this.loadMessages.bind(this);
+    this.send = this.send.bind(this);
+    this.renderFollowers = this.renderFollowers.bind(this);
+    this.renderFollowing = this.renderFollowing.bind(this);
+    this.renderMessages = this.renderMessages.bind(this);
+  }
+  setRecipient(){
+    this.setState({
+      loadState: 0, 
+      recipient: this.props.params.get('user')??null, 
+      messages: []
+    });
+  }
+  loadMessages(){
+    this.setState({loadState: 1});
+    let recipient = this.state.recipient;
+    getMessages(recipient).then((result) => {
+      if (this.state.recipient !== recipient) {return;}
+      this.setState({
+        loadState: 2, 
+        recipient: recipient, 
+        messages: result.data??[]
+      });
+    });
+  }
+  send(){
+    if (this.state.current_message.trim() === "") {return;}
+    sendMessage(this.state.recipient, this.state.current_message).then((result) => {
+      this.setState({loadState: 0, current_message: ""});
+    });
+  }
+  renderFollowers(){
+    return <div className='message-follows'>
+      <h1>Followers</h1>
+      {renderUserList(
+        this.props.user.profile.followers??[],
+        (user) => (() => {this.props.setParams({user: user});})
+      )}
+    </div>;
+  }
+  renderFollowing(){
+    return <div className='message-follows'>
+      <h1>Followed Users</h1>
+      {renderUserList(
+        this.props.user.profile.following??[],
+        (user) => (() => {this.props.setParams({user: user});})
+      )}
+    </div>;
+  }
+  renderMessages(){
+    return <div className='message-list'>{
+      this.state.messages.map((msg, i) => (
+        <div 
+          className='message'
+          key={i}
+          id={msg.sender===this.state.recipient? "recieved":"sent"}
+        >
+          {msg.message}
+        </div>
+      ))
+    }</div>;
+  }
+  render(){
+    if (this.state.recipient!==(this.props.params.get('user')??null)){
+      return <MethodCaller method={this.setRecipient}/>;
+    }else if (this.state.loadState===0){
+      return <MethodCaller method={this.loadMessages}/>;
     }
+    const loading = this.state.loadState!==2;
+    const userSelected = this.state.recipient!==null;
+    return <div className='message-page'>
+      {this.renderFollowing()}
+      {this.renderFollowers()}
+      {!loading&&userSelected&&<div className='messaging-window'>
+        <UserDisplay 
+          user={this.state.recipient}
+          alt="User"
+          fallback="/default_user.png"
+          clickable={true}
+        />
+        {this.renderMessages()}
+        <div className='message-input'>
+          <input
+            value={this.state.current_message}
+            onChange={(e) => {this.setState({current_message: e.target.value});}}
+            placeholder="Type a message..."
+          />
+          <button onClick={this.send}>Send</button>
+        </div>
+      </div>}
+    </div>;
+  }
 }
-
-class MessageTextBox extends React.Component {
-    render() {
-        return (
-            <div className="message-input-container">
-                <input
-                    id="msg-input"
-                    className="message_input"
-                    value={this.props.message}
-                    onChange={this.props.onChange}
-                    placeholder="Type a message..."
-                />
-            </div>
-        );
-    }
-}
-
-class SendButton extends React.Component {
-    render() {
-        return (
-            <div className="send" onClick={this.props.handleClick}>
-                <div className="text">Send</div>
-            </div>
-        );
-    }
-}
-
-class Messages extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            messages: [],
-            currentMessage: "",
-        };
-
-        this.fetchMessages = this.fetchMessages.bind(this);
-        this.handleSend = this.handleSend.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-    }
-
-    async fetchMessages() {
-        try {
-            const response = await fetch('/message/get', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recipient: this.props.recipientId })
-            });
-            const data = await response.json();
-            if (data.success) {
-                this.setState({ messages: data.messages });
-            }
-        } catch (err) {
-            console.error("Failed to fetch messages:", err);
-        }
-    }
-
-    async handleSend() {
-        if (this.state.currentMessage.trim() === "") return;
-
-        try {
-            const response = await fetch('/message/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    recipient: this.props.recipientId,
-                    message: this.state.currentMessage,
-                }),
-            });
-            const data = await response.json();
-            if (data.success) {
-                this.setState((prevState) => ({
-                    messages: [...prevState.messages, data.message],
-                    currentMessage: "",
-                }));
-            }
-        } catch (err) {
-            console.error("Failed to send message:", err);
-        }
-    }
-
-    // Handle input changes
-    handleChange(e) {
-        this.setState({ currentMessage: e.target.value });
-    }
-
-    componentDidMount() {
-        this.fetchMessages();
-    }
-
-    render() {
-        return (
-            <div className="chat_window">
-                <MessagesContainer
-                    messages={this.state.messages}
-                    userId={this.props.userId}
-                />
-                <div className="bottom_wrapper clearfix">
-                    <MessageTextBox
-                        message={this.state.currentMessage}
-                        onChange={this.handleChange}
-                    />
-                    <SendButton handleClick={this.handleSend} />
-                </div>
-            </div>
-        );
-    }
-}
-
-export default Messages;
+export default loggedInPage(withParams(MessagePage));

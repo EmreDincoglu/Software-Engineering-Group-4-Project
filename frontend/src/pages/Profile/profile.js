@@ -1,104 +1,227 @@
 import React from 'react';
-import {loggedInPage} from '../../lib/auth';
-import {calculate_age, withParams} from '../../lib/default';
-import {getProfile} from '../../lib/backend';
-import {Navigate} from "react-router-dom";
+import moment from 'moment';
+import {
+  loggedInPage, withNavigate, withParams, MethodCaller,
+  getProfile, followUser as followUserBackend, blockUser as blockUserBackend, unfollowUser as unfollowUserBackend,
+  UserDisplay, PostDisplay, StoredImage
+} from '../../lib/default';
+import './profile.css';
 
 // State of the profile.
-const state = {
-  LOADING: 0, // User's profile is currently being accessed from the backend.
-  LOADED: 1, // User's profile has been aqcuired and is ready for display
-  BLOCKED: 2, // You or the other user have each other blocked
-  INVALID_USER: 3, //User does not exist
-  NOT_CREATED: 4 // User has not created the profile yet.
+const failStates = {
+  INVALID_SESSION: 0,
+  BLOCKED: 1, // You or the other user have each other blocked
+  INVALID_USER: 2, //User does not exist
 };
+// Given a birthdate, calculates an age as of today 
+function calculate_age(birthdate){
+  if (birthdate == null) {return null;}
+  let years = moment(Date.now()).diff(moment(new Date(birthdate)), 'years');
+  return Math.floor(years);
+}
+// Get day month year birthday string from date
+function get_birthday_string(birthdate){
+  if (birthdate == null) {return null;}
+  return (new Date(birthdate)).toDateString().substring(4);
+}
+// Get a string for a list of items, returns null if list is [] or null
+function get_list_string(list) {
+  if (list == null || list.length === 0) {return null;}
+  return list.join(", ");
+}
+// Returns html to display data with label, returns null when data is null
+function displayInfoItem(label, data){
+  if (data == null) {return null;}
+  return <div className='profile-info-item'>
+    <span>{label}</span>
+    <span>{data}</span>
+  </div>;
+}
+// Render a list of user ids as UserDisplays
+function renderUserList(list) {
+  return <>{list.map((id) => (<UserDisplay 
+    user={id}
+    alt="User"
+    fallback="/default_user.png"
+    clickable={true}
+  />))}</>;
+}
+// Render a list of photos
+function renderPhotoList(list){
+  return <>{list.map((photo, i) => (<StoredImage
+    className='profile-photo'
+    key={i}
+    image={photo}
+    alt={"Photo " + (i+1)}
+  />))}</>;
+}
 
-class ProfilePage extends React.Component {
+class ProfilePage extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      // current state of profile loading
-      state: state.LOADING,
-      // id of the current user we are looking at. Null if we are looking at our own profile
-      user: "unset",
-      // profile data of the requested user.
-      profile: null,
+      loadState: 0,
+      failState: 3,
+      id: null,
+      profile: null
     };
-    this.update = this.update.bind(this);
+    this.getUser = this.getUser.bind(this);
+    this.setUser = this.setUser.bind(this);
+    this.loadUser = this.loadUser.bind(this);
+    this.followUser = this.followUser.bind(this);
+    this.blockUser = this.blockUser.bind(this);
+    this.messageUser = this.messageUser.bind(this);
+    this.renderProfile = this.renderProfile.bind(this);
   }
-  // Called when the page is loaded or changed. Makes sure the correct profile is loaded
-  async update(){
-    // Get the requested user from the 'user' query param. null (meaning the logged in users profile) if no 'user' query param is set.
-    let user = this.props.params.get('user')??null;
-    // if our requested user hasn't changed, nothing to do, return;
-    if (this.state.user === user) {return;}
-    // if we are looking at our own profile get the profile from the user prop.
-    if (user === null) {
-      this.setState({
-        user: user, 
-        // Null profile means it has not been created
-        state: (this.props.user.profile == null) ? state.NOT_CREATED : state.LOADED, 
-        profile: this.props.user.profile??null
-      });
-      return;
+  async getUser(id) {
+    if (id==null) {
+      return this.props.user.profile
     }
-    // update our state to loading
-    this.setState({user: user, state: state.LOADING, profile: null});
-    // Asynchronously get profile from backend
-    const profile = await getProfile(user);
-    // Only update the user prop if we are still looking for that user
-    if (this.state.user !== user) {return;}
-    // update the profile data and state
-    this.setState({user: user, state: state[profile.fail_state??"LOADED"], profile: profile.profile??null});
+    let result = await getProfile(id);
+    if (!result.success) {
+      return {failState: failStates[result.fail_state]};
+    }
+    return result.profile;
   }
-  componentDidUpdate(){
-    this.update();
+  setUser(){
+    this.setState({
+      loadState: 0, 
+      profile: null, 
+      failState: "", 
+      id: this.props.params.get('user')??null
+    });
   }
-  componentDidMount() {
-    this.update();
+  loadUser(){
+    if (this.state.loadState !== 0) {return;}
+    this.setState({loadState: 1});
+    // begin loading the profile
+    let id = this.state.id;
+    this.getUser(id).then((result) => {
+      if (this.state.id !== id){return;}
+      if (result.failState != null){
+        this.setState({loadState: 2, profile: null, failState: result.failState});
+      }
+      this.setState({loadState: 2, profile: result, failState: -1});
+    });
   }
+  // follow/unfollow/block user
+  async followUser(){
+    if (this.props.user.following.includes(this.state.id)) {
+      await unfollowUserBackend(this.state.id);
+    }else {
+      await followUserBackend(this.state.id);
+    }
+    this.setState({loadState: 0});
+    this.props.updateUser();
+  }
+  async blockUser(){
+    await blockUserBackend(this.state.id);
+    this.setState({loadState: 0});
+    this.props.updateUser();
+  }
+  // redirect to message page
+  async messageUser(){
+    this.props.navigate("/messages?user=" + this.state.id);
+  }
+  // Render the profile
   renderProfile(editable){
     let profile = this.state.profile;
-    return <>
-      <div className='grid-background'/>
-      <div className='profile'>
-        <h1>{profile.pref_name??this.props.user.username}</h1>
-        <div className = "basic-info">
-          <h2> Age: {calculate_age(profile.birthday)}</h2>
-          <h2> Relationship Goals: {profile.relationship_goals}</h2>
-          <h2> Gender: {profile.gender}</h2>
-          <h2> Sexual Orientation: {profile.sexual_orientation}</h2>
-          <h2> Birthday: {(new Date(profile.birthday)).toDateString()}</h2>
+    return <div className='profile'>
+      <div className='profile-info'>
+        <div className='profile-bio'>
+          <div className='profile-header'>
+            <StoredImage 
+              className='profile-picture'
+              image={profile.profile_pic??null}
+              alt="Profile"
+              fallback="/default_user.png"
+            />
+            <div className='profile-name'>
+              <h1>{profile.name}</h1>
+              <h2>@{profile.username}</h2>
+            </div>
+          </div>
+          <div className='profile-age'>
+            {displayInfoItem("Age: ", calculate_age(profile.birthday))}
+            {displayInfoItem("Birthday: ", get_birthday_string(profile.birthday))}
+          </div>
+          <div className='profile-gender'>
+            {displayInfoItem("Gender: ", profile.gender)}
+            {displayInfoItem("Sexual Orientation: ", profile.sexuality)}
+            {displayInfoItem("Preferred Genders: ", get_list_string(profile.gender_pref))}
+          </div>
         </div>
-        <div className="music-section">
-          <h2> Favorite Genres: {profile.favorite_genres}</h2>
-          <h2> Favorite Artists: {profile.favorite_artists}</h2>
+        <div className='profile-spotify-pictures'>
+          <div className='profile-spotify'>
+            {displayInfoItem("Favorite Genres: ", get_list_string(profile.genres))}
+            {displayInfoItem("Favorite Artists: ", get_list_string(profile.artists))}
+          </div>
+          <div className='profile-pictures'>
+            {renderPhotoList(profile.photos??[])}
+          </div>
         </div>
-        {editable&&
-          <button onClick={() => {this.setState({state: state.NOT_CREATED})}}>
-            Edit Profile
-          </button>
-        }
       </div>
-    </>;
+      <div className='profile-buttons'>
+        {editable? (
+          <button 
+            className='profile-edit-button'
+            onClick={() => {this.props.navigate('/profile-creation')}}
+          >Edit Profile</button>
+        ) : (<>
+          <button onClick={this.followUser}>{
+            this.props.user.following.includes(this.state.user)? "Unfollow User" : "Follow User"
+          }</button>
+          <button id="block"  onClick={this.blockUser}>Block User</button>
+          <button id="message"  onClick={this.messageUser}>Message User</button>
+        </>)}
+      </div>
+    </div>;
   }
-  render() {
-    switch (this.state.state){
-      case state.LOADING:
-        return <h1>Loading...</h1>;
-      case state.INVALID_USER:
-        return <h1>User not found.</h1>
-      case state.BLOCKED:
-        return <h1>Unable to view profile. You or this user have blocked the other.</h1>
-      case state.NOT_CREATED:
-        if (this.state.user === null) {return <Navigate to="/profile-creation"/>;}
-        return <h1>This user has not yet created their profile.</h1>
-      default:
+  render(){
+    if (this.state.id !== (this.props.params.get('user')??null)){
+      return <MethodCaller method={this.setUser}/>;
     }
-    // Display Profile:
-    return this.renderProfile(this.state.user === null);
+    if (this.state.loadState===0) {
+      return <MethodCaller method={this.loadUser}/>;
+    } else if (this.state.loadState===1) {
+      return <div className='profile-message' id="loading">
+        <h1>Loading...</h1>
+      </div>;
+    } else if (this.state.failState===failStates.INVALID_SESSION) {
+      return <MethodCaller method={this.props.updateUser}/>;
+    } else if (this.state.failState===failStates.BLOCKED) {
+      return <div className='profile-message' id="normal">
+        <h1>Unable to view profile. You or this user have blocked the other.</h1>
+        <button onClick={() => {this.props.setParams({})}}>Go To Your Profile</button>
+      </div>;
+    } else if (this.state.failState===failStates.INVALID_USER) {
+      return <div className='profile-message' id="error">
+        <h1>User not found</h1>
+        <button onClick={() => {this.props.setParams({})}}>Go To Your Profile</button>
+      </div>;
+    }
+    return <div className='profile-page'>
+      <div className='grid-background'/>
+      {this.renderProfile(this.state.id==null)}
+      <div className='profile-follows'>
+        <h1>Followed Users</h1>
+        {renderUserList(this.state.profile.following??[])}
+      </div>
+      <div className='profile-follows'>
+        <h1>Followers</h1>
+        {renderUserList(this.state.profile.followers??[])}
+      </div>
+      <div className='profile-posts-body'>
+        <h1>Posts</h1>
+        <div className='profile-posts'>
+          {(this.state.profile.posts??[]).map((id, i) => <div key={i}>
+            <PostDisplay user={this.props.user} post={id}/>
+          </div>)}
+        </div>
+      </div>
+    </div>;
   }
 }
-const WrappedProfilePage = loggedInPage(withParams(ProfilePage));
+const WrappedProfilePage = loggedInPage(withParams(withNavigate(ProfilePage)));
 export {WrappedProfilePage as ProfilePage};
 export {default as ProfileCreationPage} from './profile-creation';

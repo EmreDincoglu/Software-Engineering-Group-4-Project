@@ -8,12 +8,12 @@ export function add_requests(app){
     //user
     app.post('/user/create', createUser);
     app.delete('/user/delete', deleteUser);
-    app.get('/user/getData', getUserData);
+    app.get('/user/get', getUserData);
     app.put('/user/update', updateAccount);
     app.post('/user/block', blockUser);
     app.post('/user/follow', followUser);
-    app.get('user/follower-following', getFollowersAndFollowing);
     app.post('/user/unfollow', unfollowUser);
+    app.get('user/follower-following', getFollowersAndFollowing);
 }
 // Helper Methods ------------------------------
 async function checkBlocked(userA, userB) {
@@ -48,8 +48,8 @@ const deleteUser = user_request(async (req, res, user) => {
     // Remove user from db and reset the session cookies on the frontend
     let id = user._id;
     await User.deleteOne(user);
-    await SpotifyAccount.deleteMany({user: id});
-    await Profile.deleteMany({user_id: id});
+    await SpotifyAccount.findByIdAndDelete(id);
+    await Profile.delete_full(id);
     // Could do a lot more here, but this is the bare minimum
     res.cookie('session_id', "", {maxAge: 1});
     res.cookie('user_id', "", {maxAge: 1});
@@ -57,16 +57,21 @@ const deleteUser = user_request(async (req, res, user) => {
 });
 // Return client side user information for a logged in user
 const getUserData = user_request(async (_, res, user) => {
-    const spotify_data = await getSpotifyData(user);
+    const spotify_data = await getSpotifyData(user._id);
     const profile_data = await getProfileData(user);
     res.json({
         success: true, 
         user: {
-            username: user.username, 
-            email: user.email,
-            password: user.password,
             spotify: spotify_data,
-            profile: profile_data
+            profile: profile_data,
+            username: user.username,
+            password: user.password,
+            email: user.email,
+            blocked: user.blocked??[],
+            following: user.following??[],
+            followers: user.followers??[],
+            posts: user.posts??[],
+            liked: user.liked??[]
         }
     });
 });
@@ -85,7 +90,7 @@ const updateAccount = user_request(async (req, res, user) => {
         user.password = req.body.password;
     }
     // check for uniqueness
-    let resp = {duplicate_email: await user.checkUniqueEmail(), duplicate_username: await user.checkUniqueUsername};
+    let resp = {duplicate_email: await user.checkUniqueEmail(), duplicate_username: await user.checkUniqueUsername()};
     resp.success = !resp.duplicate_email && !resp.duplicate_username;
     if (!resp.success) {res.json(resp); return;}
     // update user
@@ -98,14 +103,24 @@ const blockUser = user_request(async(req, res, user) => {
     const blockedUser = await User.findById(req.body.user_id);
     if (!blockedUser) {res.json({success: false, invalid_user: true}); return;}
     // Block the user here. Maybe make it a toggle like the like post function?
-
+    const index = user.blocked.indexOf(blockedUser._id);
+    var blocked;
+    if (index > -1){
+        user.blocked.splice(index, 1);
+        blocked = false;
+    }
+    else {
+        user.blocked.push(blockedUser._id);
+        blocked = true;
+    }
+    await user.save();
+    res.json({success: true, blocked: blocked});
 });
 // Follow a user specified by user_id
 const followUser = user_request(async(req, res, user) => {
     //find user and see if they exists
     const followedUser = await User.findById(req.body.user_id);
     if (!followedUser) {res.json({success: false, invalid_user: true}); return;}
-    //make sure one doesnt block the other
     if(await checkBlocked(user, followedUser)) {res.json({success: false, blocked: true}); return;}
     // Follow the user here. Maybe make it a toggle like the like post function?
     if (!user.following.includes(followedUser._id)) {
@@ -118,7 +133,7 @@ const followUser = user_request(async(req, res, user) => {
         res.json({ success: false, already_following: true });
     }
 });
-
+// Unfollow a user specified by user_id
 const unfollowUser = user_request(async (req, res, user) => {
     const unfollowedUser = await User.findById(req.body.user_id);
     if (!unfollowedUser) { res.json({ success: false, invalid_user: true }); return; }

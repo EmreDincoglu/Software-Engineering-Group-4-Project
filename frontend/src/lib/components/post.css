@@ -1,0 +1,54 @@
+.post-display{
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em;
+    border: 1px solid white;
+    border-radius: 1em;
+}
+.post-user-likes .user-display .user-display-render{
+    cursor: pointer;
+}
+.post-user-likes{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+.post-likes{
+    display: flex;
+    flex-direction: row;
+    gap: 0.5em;
+    font-size: 75%;
+    font-weight: bold;
+}
+.post-like-button{
+    height: 1.25em;
+    line-height: 1em;
+    background-color: limegreen;
+    color: white;
+    border: 1px solid white;
+    border-radius: 0.25em;
+    margin: auto 0;
+    cursor: pointer;
+    padding: 0.1em 0.25em 0.25em 0.25em;
+    font-size: 100%;
+}
+.post-like-button:hover{
+    background-color: hotpink;
+}
+.post-date{
+    font-size: 50%;
+}
+.post-image{
+    padding-top: 0.5em;
+    padding-left: 2em;
+    padding-right: 2em;
+}
+.post-song{
+    margin-top: 0.5em;
+}
+.post-text{
+    align-self: center;
+    text-align: left;
+    margin-top: 0.5em;
+}
