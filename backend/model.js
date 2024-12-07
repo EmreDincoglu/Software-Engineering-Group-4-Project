@@ -1,9 +1,15 @@
 // Imports
-import { createConnection, Schema, Types } from 'mongoose';
+import mongoose from 'mongoose';
+
+const createConnection = mongoose.createConnection;
+const Schema = mongoose.Schema;
+const Types = mongoose.Types;
+
 import moment from 'moment';
 import { send_encoded_request } from './lib.js';
 import { CLIENT_ENCODED } from './requests/spotify.js';
-// Database definition
+
+// Database Definition
 const databases = {
     heartbeatz: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/HeartBeatz?retryWrites=true&w=majority&appName=Cluster0'),
     messages: createConnection('mongodb+srv://dincoglue:aT8C5J5D6Jw6wWfW@cluster0.e7oni.mongodb.net/Messages?retryWrites=true&w=majority&appName=Cluster0'),

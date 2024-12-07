@@ -1,0 +1,22 @@
+{
+    "name": "heart-beatz-backend--test",
+    "version": "0.1.0",
+    "scripts": {
+        "test": "mocha ./integration_tests/*.js",
+        "test_mocks": "mocha ./Mocks/test/*.js"
+    },
+    "type": "module",
+    "license": "ISC",
+    "devDependencies": {
+        "chai": "^4.2.0",
+        "express": "^4.21.1",
+        "factory-girl": "^5.0.4",
+        "mocha": "^10.8.2",
+        "mock-require": "^3.0.3",
+        "mockery": "^2.1.0",
+        "sinon": "^19.0.2",
+        "supertest-as-promised": "^4.0.2",
+        "body-parser": "^1.20.3",
+        "cookie-parser": "^1.4.7"
+    }
+}
