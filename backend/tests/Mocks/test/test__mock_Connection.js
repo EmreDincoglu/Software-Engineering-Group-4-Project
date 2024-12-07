@@ -67,13 +67,20 @@ describe("mock_Connection", async () => {
     });
 
     let other_model1, other_model2, other_model3;
-    it("getting models", () => {
-        other_model1 = connection.model("model1");
-        expect(other_model1).to.equal(model1);
-        
-        expect(connection.model("model2")).to.equal(model2);
-        
-        other_model3 = connection.model("model3");
-        expect(other_model3).to.equal(model3);
+    it("models not calling new", () => {
+        const inst1 = connection.model("model1")({a: 1, b: 2});
+        expect('a' in inst1).to.be.true;
+        expect('b' in inst1).to.be.true;
+        expect('save' in inst1).to.be.true;
+
+        const inst2 = connection.model("model2")({a: 1, b: 2});
+        expect('a' in inst2).to.be.true;
+        expect('getA' in inst2).to.be.true;
+        expect('save' in inst2).to.be.true;
+
+        const inst3 = connection.model("model3")({a: 1});
+        expect('a' in inst3).to.be.true;
+        expect('save' in inst3).to.be.true;
+        expect('get1' in model3).to.be.true;
     });
 });

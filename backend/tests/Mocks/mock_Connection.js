@@ -9,8 +9,18 @@ class mock_Connection {
     }
 
     model(name, schema) {
-        if (name in this.#database) { 
-            return this.#database[name]; 
+        if (schema == null) {
+            const mdl = this.#database[name];
+            
+            let f = function(args) {
+                return new mdl(args);
+            }
+
+            return new Proxy(f, {
+                get(target, property) {
+                    return mdl[property];
+                }
+            });
         }
 
         const newCollection = new mock_Collection();

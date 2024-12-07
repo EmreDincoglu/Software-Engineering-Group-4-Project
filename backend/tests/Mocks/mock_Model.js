@@ -111,4 +111,5 @@ return mock_Model;
 
 export {
     mock_Model_Generator as mock_Model_Generator,
+    ModelGeneratorHelperFunction as ModelGeneratorHelperFunction,
 };
