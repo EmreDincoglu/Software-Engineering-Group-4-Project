@@ -180,7 +180,7 @@ schemas.user.methods = {
 };
 schemas.user.statics = {
     create_new: function(data) {
-        return new (databases.heartbeatz.model('UserAccount'))({
+        return (databases.heartbeatz.model('UserAccount'))({
             username: data.username,
             _lc_uname: data.username.toLowerCase(),
             email: data.email.toLowerCase(),
@@ -248,7 +248,7 @@ schemas.profile = new Schema({
 });
 schemas.profile.statics = {
     create_new: function(user_id) {
-        return new databases.heartbeatz.model('UserProfile')({
+        return databases.heartbeatz.model('UserProfile')({
             _id: user_id,
             gender_pref: [],
             genres: [],
